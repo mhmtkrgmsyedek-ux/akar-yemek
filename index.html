@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Akar Yemek</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F3F5F4;--card:#fff;--ink:#14201C;--mute:#5F6E69;--line:#DDE3E0;--brand:#0E6B5C;--brand-d:#0A4F44;--hot:#F2A81D;--err:#B3261E}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.45}
+header{background:var(--brand);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px}
+header h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;cursor:pointer}
+header small{opacity:.85;margin-right:8px}
+header button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-weight:600}
+main{max-width:720px;margin:0 auto;padding:16px 16px 110px}
+h2{font-size:24px;font-weight:800;margin:8px 0 14px;letter-spacing:-.02em}
+h3{font-size:17px;margin:22px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+button{font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
+.note{color:var(--mute)}
+.err{color:var(--err);background:#fff;border:1px solid var(--err);padding:12px;border-radius:8px}
+.pic{position:relative;overflow:hidden;background:linear-gradient(135deg,#E3EFEB,#C5DDD5);display:flex;align-items:center;justify-content:center;font-size:48px}
+.pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.tile{position:relative;aspect-ratio:1/1;border:0;border-radius:14px;overflow:hidden;padding:12px;display:flex;align-items:flex-end;text-align:left;color:#fff;background:var(--brand)}
+.tile .pic{position:absolute;inset:0;font-size:64px;padding-bottom:28px}
+.tile::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(8,30,25,.88))}
+.tile .lbl{position:relative;z-index:1}
+.tile b{display:block;font-size:20px;font-weight:800;letter-spacing:-.01em}
+.tile small{opacity:.9}
+.rcard{display:block;width:100%;padding:0;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.rcard .pic{aspect-ratio:16/9;font-size:56px}
+.rcard .body{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.rcard strong{display:block;font-size:18px}
+.rcard span{display:block;color:var(--mute)}
+.rcard small{display:block;margin-top:4px;font-weight:600}
+.rcard em{background:var(--ink);color:#fff;font-style:normal;font-size:13px;padding:4px 10px;border-radius:99px}
+.hero{aspect-ratio:16/9;border-radius:14px;font-size:64px;margin-bottom:12px}
+.back{background:none;border:0;color:var(--brand);font-weight:600;padding:6px 0;margin-bottom:4px}
+.info{color:var(--mute);margin:-8px 0 8px}
+.prod{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
+.prod .pic{width:72px;height:72px;border-radius:8px;font-size:30px;flex:none}
+.prod .t{flex:1}
+.prod .t b{display:block}
+.prod .t span{color:var(--mute);font-size:14px;display:block}
+.prod .t i{font-style:normal;font-weight:800;color:var(--brand-d)}
+.add,.q button{background:var(--brand);color:#fff;border:0;border-radius:8px;min-width:44px;height:44px;font-weight:800;font-size:18px}
+.q{display:flex;align-items:center;gap:8px;font-weight:800}
+.q button{background:var(--ink)}
+#cart{background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:16px;margin-top:26px}
+#cart .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0}
+#cart .tot{font-size:20px;font-weight:800;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+.warn{background:#FFF4D6;border:1px solid var(--hot);padding:10px;border-radius:8px;margin:10px 0}
+.warn[hidden]{display:none}
+.go{width:100%;background:var(--hot);color:var(--ink);border:0;border-radius:10px;font-weight:800;font-size:17px;padding:14px;margin-top:10px}
+.go:disabled{opacity:.5;cursor:not-allowed}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:#fff;text-decoration:none;display:flex;justify-content:space-between;padding:16px;font-weight:800;z-index:6}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input,textarea{width:100%;font:inherit;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.sw{background:none;border:0;color:var(--brand);font-weight:600;margin-top:12px;padding:6px 0}
+.ok{background:#fff;border:2px solid var(--brand);border-radius:10px;padding:18px}
+</style>
+</head>
+<body>
+<header><h1 data-home>Akar Yemek</h1><div id="who"></div></header>
+<main id="app"></main>
+
+<script>
+const SB_URL = 'https://bspjvnxnofkhnocjwsjb.supabase.co';
+const SB_KEY = 'sb_publishable_LYozx29A9SxRFBEXLkxftg_28peojyK';
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tl = n => Number(n).toLocaleString('tr-TR', {maximumFractionDigits: 2}) + ' ₺';
+// Fotoğraf varsa üstte görünür, yoksa (veya açılmazsa) emoji kalır
+const pic = (url, emoji, cls = '') => `<div class="pic ${cls}"><span>${esc(emoji || '🍽️')}</span>${url ? `<img src="${esc(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</div>`;
+
+let sess = null;
+try { sess = JSON.parse(localStorage.getItem('sess') || 'null'); } catch (e) {}
+const save = s => { sess = s; try { s ? localStorage.setItem('sess', JSON.stringify(s)) : localStorage.removeItem('sess'); } catch (e) {} };
+const hdr = () => ({ apikey: SB_KEY, 'Content-Type': 'application/json', ...(sess ? { Authorization: 'Bearer ' + sess.token } : {}) });
+const who = () => { $('#who').innerHTML = sess ? `<small>${esc(sess.email)}</small><button data-out>Çıkış</button>` : '<button data-in>Giriş</button>'; };
+
+const auth = async (path, body) => {
+  const r = await fetch(SB_URL + '/auth/v1/' + path, { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.msg || j.error_description || j.message || 'İşlem başarısız');
+  return j;
+};
+const toSess = j => ({ token: j.access_token, refresh: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000 - 60000, uid: j.user.id, email: j.user.email });
+
+const api = async path => {
+  let r = await fetch(SB_URL + '/rest/v1/' + path, { headers: hdr() });
+  if (r.status === 401 && sess) { save(null); who(); r = await fetch(SB_URL + '/rest/v1/' + path, { headers: hdr() }); }
+  if (!r.ok) throw new Error('Sunucu hatası: ' + r.status);
+  return r.json();
+};
+const fail = e => { $('#app').innerHTML = `<p class="err">Veriler alınamadı. İnternet bağlantını ve Supabase projenin açık olduğunu kontrol et. (${esc(e.message)})</p>`; };
+
+let cuis = [], rests = {}, loaded = false, cc = null, current = null, cats = [], prods = [], cart = {};
+
+async function home() {
+  current = null; cc = null;
+  if (loaded) return showHome();
+  $('#app').innerHTML = '<p class="note">Yükleniyor…</p>';
+  try {
+    const [cu, list] = await Promise.all([
+      api('cuisines?select=*&order=sort_order'),
+      api('restaurants?select=*&order=name')
+    ]);
+    cuis = cu; rests = Object.fromEntries(list.map(r => [r.id, r])); loaded = true;
+    showHome();
+  } catch (e) { fail(e); }
+}
+
+const inCuisine = id => Object.values(rests).filter(r => id === 'other' ? !r.cuisine_id : r.cuisine_id === id);
+
+function showHome() {
+  const tiles = cuis.map(c => ({ id: c.id, name: c.name, emoji: c.emoji, img: c.image_url }));
+  if (inCuisine('other').length) tiles.push({ id: 'other', name: 'Diğer', emoji: '🍽️' });
+  $('#app').innerHTML = '<h2>Ne yemek istersin?</h2>' + (tiles.length
+    ? '<div class="grid">' + tiles.map(t => `<button class="tile" data-c="${esc(t.id)}">${pic(t.img, t.emoji)}<span class="lbl"><b>${esc(t.name)}</b><small>${inCuisine(t.id).length} restoran</small></span></button>`).join('') + '</div>'
+    : '<p class="note">Henüz kategori yok. veritabani.sql dosyasını Supabase\'de çalıştır.</p>');
+}
+
+function showCuisine(id) {
+  cc = id; current = null;
+  const c = cuis.find(x => x.id === id) || { name: 'Diğer', emoji: '🍽️' };
+  const list = inCuisine(id);
+  $('#app').innerHTML = `<button class="back" data-home>← Tüm kategoriler</button><h2>${esc(c.name)}</h2>` + (list.length
+    ? list.map(r => `<button class="rcard" data-r="${esc(r.id)}">${pic(r.image_url, c.emoji)}<div class="body"><div><strong>${esc(r.name)}</strong><span>${esc(r.description)}</span><small>Min. sipariş ${tl(r.min_order_amount)} · Teslimat ${tl(r.delivery_fee)}</small></div>${r.is_open ? '' : '<em>Kapalı</em>'}</div></button>`).join('')
+    : '<p class="note">Bu kategoride henüz restoran yok.</p>');
+  scrollTo(0, 0);
+}
+
+async function openRest(id) {
+  if (!current || current.id !== id) cart = {};
+  current = rests[id];
+  $('#app').innerHTML = '<p class="note">Menü yükleniyor…</p>';
+  try {
+    const q = encodeURIComponent(id);
+    [cats, prods] = await Promise.all([
+      api(`menu_categories?restaurant_id=eq.${q}`),
+      api(`menu_items?restaurant_id=eq.${q}&is_available=eq.true&order=name`)
+    ]);
+    cats.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    draw(); scrollTo(0, 0);
+  } catch (e) { fail(e); }
+}
+
+function prodHtml(p) {
+  const n = cart[p.id] || 0;
+  const ctrl = n
+    ? `<div class="q"><button data-sub="${esc(p.id)}" aria-label="Azalt">−</button>${n}<button data-add="${esc(p.id)}" aria-label="Artır">+</button></div>`
+    : `<button class="add" data-add="${esc(p.id)}" aria-label="${esc(p.name)} ekle">+</button>`;
+  return `<div class="prod">${pic(p.image_url, '🍽️')}<div class="t"><b>${esc(p.name)}</b><span>${esc(p.description)}</span><i>${tl(p.price)}</i></div>${ctrl}</div>`;
+}
+
+function draw() {
+  const y = scrollY, r = current;
+  const c = cuis.find(x => x.id === r.cuisine_id);
+  const groups = cats.map(k => [k.name, prods.filter(p => p.category_id === k.id)]);
+  const other = prods.filter(p => !cats.some(k => k.id === p.category_id));
+  if (other.length) groups.push([cats.length ? 'Diğer' : 'Menü', other]);
+  const menu = groups.filter(g => g[1].length).map(g => `<h3>${esc(g[0])}</h3>${g[1].map(prodHtml).join('')}`).join('')
+    || '<p class="note">Bu restoranın menüsü henüz boş.</p>';
+
+  const items = prods.filter(p => cart[p.id]);
+  const count = items.reduce((s, p) => s + cart[p.id], 0);
+  const sub = items.reduce((s, p) => s + cart[p.id] * Number(p.price), 0);
+  const fee = Number(r.delivery_fee), min = Number(r.min_order_amount);
+  const low = count > 0 && sub < min;
+
+  const cartHtml = `<section id="cart"><h2 style="margin-top:0">Sepetin</h2>` + (count
+    ? items.map(p => `<div class="row"><span>${cart[p.id]} × ${esc(p.name)}</span><span>${tl(cart[p.id] * p.price)}</span></div>`).join('')
+      + `<div class="row"><span>Ara toplam</span><span>${tl(sub)}</span></div><div class="row"><span>Teslimat</span><span>${tl(fee)}</span></div><div class="row tot"><span>Toplam</span><span>${tl(sub + fee)}</span></div>`
+      + (low ? `<div class="warn">Minimum sipariş tutarı ${tl(min)}. ${tl(min - sub)} daha ekle.</div>` : '')
+      + (!r.is_open ? '<div class="warn">Restoran şu an kapalı.</div>' : '')
+      + `<button class="go" data-go ${low || !r.is_open ? 'disabled' : ''}>${sess ? 'Siparişi tamamla' : 'Giriş yap ve siparişi tamamla'}</button>`
+    : '<p class="note">Sepetin boş. Menüden ürün ekle.</p>') + '</section>';
+
+  const back = cc ? `<button class="back" data-c="${esc(cc)}">← ${esc((cuis.find(x => x.id === cc) || { name: 'Diğer' }).name)}</button>` : '<button class="back" data-home>← Kategoriler</button>';
+  $('#app').innerHTML = `${back}${pic(r.image_url, c && c.emoji, 'hero')}<h2>${esc(r.name)}</h2><p class="info">${esc(r.description)} · ${esc(r.address)}</p>${menu}${cartHtml}`
+    + (count ? `<a class="bar" href="#cart"><span>Sepeti gör (${count})</span><span>${tl(sub + fee)}</span></a>` : '');
+  scrollTo(0, y);
+}
+
+function authView(mode) {
+  const s = mode === 'signup';
+  $('#app').innerHTML = `<button class="back" data-menu>← Geri</button><h2>${s ? 'Kayıt ol' : 'Giriş yap'}</h2>
+<label for="em">E-posta</label><input id="em" type="email" autocomplete="email">
+<label for="pw">Şifre (en az 6 karakter)</label><input id="pw" type="password" autocomplete="${s ? 'new-password' : 'current-password'}">
+<div id="aerr" class="warn" hidden></div>
+<button class="go" data-submit="${mode}">${s ? 'Kayıt ol' : 'Giriş yap'}</button>
+<button class="sw" data-mode="${s ? 'login' : 'signup'}">${s ? 'Hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}</button>`;
+}
+
+async function doAuth(mode) {
+  const email = $('#em').value.trim(), password = $('#pw').value, el = $('#aerr');
+  el.hidden = false; el.textContent = 'Bekle…';
+  try {
+    const j = mode === 'signup' ? await auth('signup', { email, password }) : await auth('token?grant_type=password', { email, password });
+    if (!j.access_token) { el.textContent = 'Kayıt oluşturuldu. E-postana gelen bağlantıyla hesabını doğrula, sonra giriş yap.'; return; }
+    save(toSess(j)); who();
+    (current && Object.keys(cart).length) ? checkout() : home();
+  } catch (e) { el.textContent = e.message; }
+}
+
+function checkout() {
+  const r = current, items = prods.filter(p => cart[p.id]);
+  const sub = items.reduce((s, p) => s + cart[p.id] * Number(p.price), 0);
+  $('#app').innerHTML = `<button class="back" data-menu>← Menüye dön</button><h2>Teslimat bilgileri</h2>
+<p class="info">${esc(r.name)} · ${tl(sub + Number(r.delivery_fee))}</p>
+<label for="a1">Adres</label><input id="a1" autocomplete="street-address">
+<label for="ct">Şehir</label><input id="ct" autocomplete="address-level2">
+<label for="pc">Posta kodu</label><input id="pc" inputmode="numeric" autocomplete="postal-code">
+<label for="ph">Telefon</label><input id="ph" type="tel" autocomplete="tel">
+<label for="nt">Kurye notu (isteğe bağlı)</label><textarea id="nt" rows="2"></textarea>
+<div id="cerr" class="warn" hidden></div>
+<button class="go" data-place>Siparişi ver</button>`;
+}
+
+async function place() {
+  const v = id => $('#' + id).value.trim(), el = $('#cerr'), btn = $('[data-place]');
+  const addr = { address_line1: v('a1'), city: v('ct'), postal_code: v('pc'), country_code: 'TR', phone: v('ph'), delivery_instructions: v('nt') };
+  el.hidden = false;
+  if (!addr.address_line1 || !addr.city || !addr.postal_code) { el.textContent = 'Adres, şehir ve posta kodunu doldur.'; return; }
+  btn.disabled = true; el.textContent = 'Sipariş gönderiliyor…';
+  const items = Object.entries(cart).map(([menu_item_id, quantity]) => ({ menu_item_id, quantity }));
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/create_food_order', {
+      method: 'POST', headers: hdr(),
+      body: JSON.stringify({ p_customer_id: sess.uid, p_restaurant_id: current.id, p_delivery_address: addr, p_items: items })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) { save(null); who(); return authView('login'); }
+    if (!r.ok) throw new Error(j.message || 'Hata ' + r.status);
+    cart = {};
+    $('#app').innerHTML = `<div class="ok"><h2>Siparişin alındı</h2><p>Toplam: <b>${tl(j.total_amount)}</b></p><p class="note">Sipariş no: ${esc(j.order_id)}</p></div><button class="go" data-home>Kategorilere dön</button>`;
+  } catch (e) { el.textContent = e.message; btn.disabled = false; }
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button,h1');
+  if (!b) return;
+  const d = b.dataset;
+  if ('home' in d) return home();
+  if (d.c) return showCuisine(d.c);
+  if ('menu' in d) return current ? draw() : home();
+  if ('in' in d) return authView('login');
+  if ('out' in d) { save(null); who(); return current ? draw() : home(); }
+  if (d.mode) return authView(d.mode);
+  if (d.submit) return doAuth(d.submit);
+  if ('place' in d) return place();
+  if (d.r) return openRest(d.r);
+  if (d.add) { cart[d.add] = (cart[d.add] || 0) + 1; return draw(); }
+  if (d.sub) { cart[d.sub] = (cart[d.sub] || 0) - 1; if (cart[d.sub] <= 0) delete cart[d.sub]; return draw(); }
+  if ('go' in d) return sess ? checkout() : authView('login');
+});
+
+(async () => {
+  if (sess && sess.exp < Date.now()) {
+    try { save(toSess(await auth('token?grant_type=refresh_token', { refresh_token: sess.refresh }))); } catch (e) { save(null); }
+  }
+  who(); home();
+})();
+</script>
+</body>
+</html>
