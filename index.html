@@ -3,68 +3,186 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#202124">
 <title>Akar Yemek</title>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#F3F5F4;--card:#fff;--ink:#14201C;--mute:#5F6E69;--line:#DDE3E0;--brand:#0E6B5C;--brand-d:#0A4F44;--hot:#F2A81D;--err:#B3261E}
+:root{--red:#e53d32;--red-d:#b92c23;--ink:#202124;--muted:#6f7378;--cream:#fff8f3;--line:#eee5df;--green:#16865b;--err:#b3261e}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.45}
-header{background:var(--brand);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px}
-header h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;cursor:pointer}
-header small{opacity:.85;margin-right:8px}
-header button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-weight:600}
-main{max-width:720px;margin:0 auto;padding:16px 16px 110px}
-h2{font-size:24px;font-weight:800;margin:8px 0 14px;letter-spacing:-.02em}
-h3{font-size:17px;margin:22px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
-button{font:inherit;cursor:pointer}
-button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
-.note{color:var(--mute)}
-.err{color:var(--err);background:#fff;border:1px solid var(--err);padding:12px;border-radius:8px}
-.pic{position:relative;overflow:hidden;background:linear-gradient(135deg,#E3EFEB,#C5DDD5);display:flex;align-items:center;justify-content:center;font-size:48px}
-.pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.tile{position:relative;aspect-ratio:1/1;border:0;border-radius:14px;overflow:hidden;padding:12px;display:flex;align-items:flex-end;text-align:left;color:#fff;background:var(--brand)}
-.tile .pic{position:absolute;inset:0;font-size:64px;padding-bottom:28px}
-.tile::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(8,30,25,.88))}
-.tile .lbl{position:relative;z-index:1}
-.tile b{display:block;font-size:20px;font-weight:800;letter-spacing:-.01em}
-.tile small{opacity:.9}
-.rcard{display:block;width:100%;padding:0;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
-.rcard .pic{aspect-ratio:16/9;font-size:56px}
-.rcard .body{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.rcard strong{display:block;font-size:18px}
-.rcard span{display:block;color:var(--mute)}
-.rcard small{display:block;margin-top:4px;font-weight:600}
-.rcard em{background:var(--ink);color:#fff;font-style:normal;font-size:13px;padding:4px 10px;border-radius:99px}
-.hero{aspect-ratio:16/9;border-radius:14px;font-size:64px;margin-bottom:12px}
-.back{background:none;border:0;color:var(--brand);font-weight:600;padding:6px 0;margin-bottom:4px}
-.info{color:var(--mute);margin:-8px 0 8px}
-.prod{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
-.prod .pic{width:72px;height:72px;border-radius:8px;font-size:30px;flex:none}
-.prod .t{flex:1}
-.prod .t b{display:block}
-.prod .t span{color:var(--mute);font-size:14px;display:block}
-.prod .t i{font-style:normal;font-weight:800;color:var(--brand-d)}
-.add,.q button{background:var(--brand);color:#fff;border:0;border-radius:8px;min-width:44px;height:44px;font-weight:800;font-size:18px}
-.q{display:flex;align-items:center;gap:8px;font-weight:800}
-.q button{background:var(--ink)}
-#cart{background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:16px;margin-top:26px}
-#cart .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0}
-#cart .tot{font-size:20px;font-weight:800;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
-.warn{background:#FFF4D6;border:1px solid var(--hot);padding:10px;border-radius:8px;margin:10px 0}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#fff}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+button:disabled{cursor:not-allowed}
+input,textarea{font:inherit;font-size:16px;width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #ffb3aa;outline-offset:2px}
+h1,h2,h3{margin:0}
+.note{color:var(--muted)}
+.err{color:var(--err);background:#fff;border:1px solid var(--err);padding:12px;border-radius:12px}
+.warn{background:#fdecea;border:1px solid #f5b5ae;padding:10px 12px;border-radius:12px;margin:10px 0;font-size:14px}
 .warn[hidden]{display:none}
-.go{width:100%;background:var(--hot);color:var(--ink);border:0;border-radius:10px;font-weight:800;font-size:17px;padding:14px;margin-top:10px}
-.go:disabled{opacity:.5;cursor:not-allowed}
-.bar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:#fff;text-decoration:none;display:flex;justify-content:space-between;padding:16px;font-weight:800;z-index:6}
-label{display:block;font-weight:600;margin:12px 0 4px}
-input,textarea{width:100%;font:inherit;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
-.sw{background:none;border:0;color:var(--brand);font-weight:600;margin-top:12px;padding:6px 0}
-.ok{background:#fff;border:2px solid var(--brand);border-radius:10px;padding:18px}
+
+/* üst şerit + gezinme */
+.top{background:var(--ink);color:#fff;text-align:center;padding:9px 16px;font-size:13px}
+.top b{color:#ffd3a7}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px max(20px,calc((100% - 1180px)/2));border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:23px;letter-spacing:-1px}
+.brand span{color:var(--red)}
+.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:var(--red);color:#fff;font-size:23px}
+.navright{display:flex;align-items:center;gap:10px;min-width:0}
+.mail{font-size:13px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ghost{border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px}
+.ghost:hover{border-color:#ffc2b7;color:var(--red)}
+.cartbtn{background:var(--red);color:#fff;border-radius:13px;padding:12px 16px;font-weight:750;white-space:nowrap}
+
+.wrap{max-width:1180px;margin:auto;padding:24px 20px}
+.narrow{max-width:560px;margin:auto}
+
+/* hero */
+.hero{background:linear-gradient(115deg,#fff0e4,#fff8f3 55%,#ffe2d5);border-radius:26px;display:grid;grid-template-columns:1.2fr .8fr;overflow:hidden;min-height:275px;align-items:center}
+.herotext{padding:38px 42px}
+.eyebrow{color:var(--red);font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:1.3px}
+.hero h1{font-size:clamp(32px,4vw,50px);line-height:1.06;letter-spacing:-1.7px;margin:12px 0}
+.hero p{color:#68615d;max-width:440px;line-height:1.6;margin:0 0 22px}
+.search{display:flex;max-width:480px;background:#fff;padding:6px;border:1px solid #f0ddd2;border-radius:15px;box-shadow:0 8px 24px #5b2b1010}
+.search input{border:0;outline:0;min-width:0;flex:1;padding:10px 12px;border-radius:10px}
+.search input:focus-visible{outline:0}
+.search:focus-within{border-color:var(--red)}
+.heroart{height:100%;min-height:250px;display:grid;place-items:center;font-size:150px;position:relative;overflow:hidden}
+.heroart:before,.heroart:after{content:"";position:absolute;border-radius:50%;background:#ffc9a6;opacity:.55}
+.heroart:before{width:230px;height:230px}
+.heroart:after{width:170px;height:170px;background:#f4a17c}
+.heroart span{z-index:1;filter:drop-shadow(0 15px 10px #a33b2430);transform:rotate(-8deg)}
+.heroart img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
+.hero.rest p{margin-bottom:14px}
+
+.sectionhead{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:30px 0 16px}
+.sectionhead h2{font-size:23px;letter-spacing:-.6px}
+.sectionhead p{margin:5px 0 0;color:var(--muted);font-size:14px}
+
+/* kategori ve filtre */
+.cats{display:flex;gap:12px;overflow-x:auto;padding:2px 0 8px}
+.cat{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid var(--line);border-radius:15px;background:#fff;font-weight:700}
+.cat .thumb{position:relative;flex:none;width:38px;height:38px;border-radius:50%;overflow:hidden;display:grid;place-items:center;font-size:22px;background:#fff0e4}
+.cat .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cat{padding:8px 16px 8px 8px}
+.cat.active,.cat:hover{border-color:#ffc2b7;background:#fff2ef;color:var(--red)}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filter{padding:8px 13px;border:1px solid var(--line);background:#fff;border-radius:99px;color:#57595d;font-size:13px}
+.filter.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* kartlar */
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.card{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:19px;overflow:hidden;background:#fff;transition:.2s}
+button.card:hover{transform:translateY(-3px);box-shadow:0 12px 30px #2b1a120d}
+.card.off{opacity:.72}
+.foodpic{height:155px;display:grid;place-items:center;font-size:77px;background:linear-gradient(135deg,#fff0e4,#ffe1cf);position:relative;overflow:hidden}
+.foodpic.green{background:linear-gradient(135deg,#e5f5e8,#cde9d2)}
+.foodpic.yellow{background:linear-gradient(135deg,#fff6d9,#ffe5a4)}
+.foodpic.pink{background:linear-gradient(135deg,#ffe9e4,#ffc9c0)}
+.foodpic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tag{position:absolute;left:12px;top:12px;z-index:2;background:#fff;color:var(--green);border-radius:7px;padding:5px 8px;font-size:11px;font-weight:800}
+.tag.off{background:var(--ink);color:#fff}
+.cardbody{padding:15px;display:block}
+.card h3,.card .name{display:block;font-size:17px;font-weight:800;margin:0 0 5px}
+.meta{display:block;font-size:13px;color:var(--muted);margin:0 0 12px;line-height:1.45}
+.cardbottom{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f4efeb;padding-top:12px;margin-top:4px}
+.price{font-weight:850}
+.add{background:#fff0ed;color:var(--red);font-size:20px;font-weight:800;width:38px;height:38px;border-radius:11px}
+.add:hover:not(:disabled){background:var(--red);color:#fff}
+.add:disabled{opacity:.4}
+.qty{display:flex;align-items:center;gap:9px}
+.qty button{background:#fff0ed;color:var(--red);border-radius:8px;width:30px;height:30px;font-weight:800}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips i{font-style:normal;font-weight:600;font-size:13px;background:#fff;border:1px solid #f0ddd2;border-radius:99px;padding:6px 12px}
+.badge{display:inline-block;font-style:normal;font-size:12px;font-weight:800;padding:5px 10px;border-radius:99px;background:#d6f0e3;color:#0a5a33}
+.badge.off{background:var(--ink);color:#fff}
+.back{color:var(--red);font-weight:700;padding:6px 0;margin-bottom:12px}
+.empty{grid-column:1/-1;padding:36px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px}
+
+/* yemek arama sonuçları */
+.dishes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.dish{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);border-radius:15px;padding:13px 15px;background:#fff}
+.dish:hover{border-color:#ffc2b7;background:#fff8f6}
+.dish b{display:block}
+.dish small{color:var(--muted)}
+.dish .price{white-space:nowrap}
+
+/* form ve paneller */
+.panel{border:1px solid var(--line);border-radius:19px;padding:4px 20px 20px}
+label{display:block;font-weight:700;margin:14px 0 5px;font-size:14px}
+.go{width:100%;background:var(--red);color:#fff;border-radius:13px;font-weight:800;padding:15px;margin-top:14px}
+.go:disabled{opacity:.5}
+.sw{color:var(--red);font-weight:700;margin-top:12px;padding:6px 0}
+.ok{text-align:center;border:1px solid var(--line);border-radius:19px;padding:30px 20px}
+.ok .tick{width:72px;height:72px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-size:38px;margin:0 auto 12px}
+.narrow h2.title{font-size:26px;letter-spacing:-.6px;margin-bottom:6px}
+.info{color:var(--muted);margin:0 0 8px}
+
+/* sepet çekmecesi */
+.overlay{position:fixed;inset:0;background:#14141470;z-index:10;display:none;justify-content:flex-end}
+.overlay.open{display:flex}
+.drawer{background:#fff;width:min(430px,100%);height:100%;padding:24px;display:flex;flex-direction:column;box-shadow:-10px 0 40px #0002}
+.drawhead{display:flex;justify-content:space-between;align-items:center}
+.drawhead h2{font-size:22px}
+.drawhead small{color:var(--muted);display:block;margin-top:2px}
+.close{font-size:24px;background:#f5f5f5;border-radius:10px;width:40px;height:40px}
+.cartitems{flex:1;overflow:auto;margin:18px 0}
+.cartrow{display:flex;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
+.cartrow .info{flex:1;margin:0}
+.cartrow strong{display:block}
+.cartrow small{color:var(--muted)}
+.totals{border-top:1px solid var(--line);padding-top:15px}
+.totalrow{display:flex;justify-content:space-between;margin:8px 0;color:#5d5f63}
+.grand{font-size:19px;color:var(--ink);font-weight:850}
+.checkout{background:var(--red);color:#fff;width:100%;padding:15px;border-radius:13px;font-weight:800;margin-top:12px}
+.checkout:disabled{opacity:.5}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;z-index:20;display:none;box-shadow:0 8px 25px #0002}
+.toast.show{display:block}
+footer{background:var(--ink);color:#fff;padding:30px 20px;margin-top:35px}
+.foot{max-width:1180px;margin:auto;display:flex;justify-content:space-between;gap:20px;align-items:center}
+.foot p{color:#c3c4c6;font-size:13px;margin:6px 0 0}
+
+@media(max-width:760px){
+  .nav{padding:12px 16px}
+  .brand{font-size:19px}
+  .logo{width:36px;height:36px}
+  .mail{display:none}
+  .hero{grid-template-columns:1fr;min-height:0}
+  .herotext{padding:28px 22px 10px}
+  .heroart{min-height:120px;font-size:95px}
+  .heroart:before{width:140px;height:140px}
+  .heroart:after{width:105px;height:105px}
+  .wrap{padding:18px 14px}
+  .grid,.dishes{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .dishes{grid-template-columns:1fr}
+  .foodpic{height:125px;font-size:60px}
+  .cardbody{padding:12px}
+  .card h3,.card .name{font-size:15px}
+  .meta{font-size:12px}
+  .sectionhead{margin-top:25px}
+  .cartbtn{padding:10px 12px;font-size:13px}
+  .foot{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:390px){.grid{grid-template-columns:1fr}.foodpic{height:150px}.hero h1{font-size:34px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-<header><h1 data-home>Akar Yemek</h1><div id="who"></div></header>
+<div class="top">🍽️ Yerel lezzetler, <b>kapına kadar!</b></div>
+<header class="nav">
+  <button class="brand" data-home aria-label="Ana sayfa"><div class="logo">A</div>Akar <span>Yemek</span></button>
+  <div class="navright"><div id="who" class="navright"></div><button class="cartbtn" data-opencart>🛒 Sepetim <span id="cartcount">0</span></button></div>
+</header>
 <main id="app"></main>
+<footer><div class="foot"><div><div class="brand"><div class="logo">A</div>Akar <span>Yemek</span></div><p>Sevdiğin restoranlardan, kapına kadar.</p></div><small>© 2026 Akar Yemek</small></div></footer>
+
+<div class="overlay" id="overlay">
+  <aside class="drawer" role="dialog" aria-label="Sepetim">
+    <div class="drawhead"><div><h2>🛒 Sepetim</h2><small id="drawrest"></small></div><button class="close" data-closecart aria-label="Kapat">×</button></div>
+    <div class="cartitems" id="cartitems"></div>
+    <div class="totals" id="drawfoot"></div>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status"></div>
 
 <script>
 const SB_URL = 'https://bspjvnxnofkhnocjwsjb.supabase.co';
@@ -73,14 +191,23 @@ const SB_KEY = 'sb_publishable_LYozx29A9SxRFBEXLkxftg_28peojyK';
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tl = n => Number(n).toLocaleString('tr-TR', {maximumFractionDigits: 2}) + ' ₺';
-// Fotoğraf varsa üstte görünür, yoksa (veya açılmazsa) emoji kalır
-const pic = (url, emoji, cls = '') => `<div class="pic ${cls}"><span>${esc(emoji || '🍽️')}</span>${url ? `<img src="${esc(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</div>`;
+const norm = s => String(s ?? '').toLocaleLowerCase('tr').trim();
 
+// Kart arka plan rengi: kimliğe göre sabit seçilir
+const TONES = ['', 'green', 'yellow', 'pink'];
+const tone = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return TONES[h % TONES.length]; };
+// Fotoğraf varsa üstte görünür, yoksa (veya açılmazsa) emoji kalır
+const pic = (url, emoji, id, extra = '') => `<div class="foodpic ${tone(id)}"><span>${esc(emoji || '🍽️')}</span>${url ? `<img src="${esc(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}${extra}</div>`;
+
+let toastTimer;
+function toast(s) { const el = $('#toast'); el.textContent = s; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2000); }
+
+/* ---------- oturum ---------- */
 let sess = null;
 try { sess = JSON.parse(localStorage.getItem('sess') || 'null'); } catch (e) {}
 const save = s => { sess = s; try { s ? localStorage.setItem('sess', JSON.stringify(s)) : localStorage.removeItem('sess'); } catch (e) {} };
 const hdr = () => ({ apikey: SB_KEY, 'Content-Type': 'application/json', ...(sess ? { Authorization: 'Bearer ' + sess.token } : {}) });
-const who = () => { $('#who').innerHTML = sess ? `<small>${esc(sess.email)}</small><button data-out>Çıkış</button>` : '<button data-in>Giriş</button>'; };
+const who = () => { $('#who').innerHTML = sess ? `<span class="mail">${esc(sess.email)}</span><button class="ghost" data-out>Çıkış</button>` : '<button class="ghost" data-in>Giriş</button>'; updateCart(); };
 
 const auth = async (path, body) => {
   const r = await fetch(SB_URL + '/auth/v1/' + path, { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -96,14 +223,72 @@ const api = async path => {
   if (!r.ok) throw new Error('Sunucu hatası: ' + r.status);
   return r.json();
 };
-const fail = e => { $('#app').innerHTML = `<p class="err">Veriler alınamadı. İnternet bağlantını ve Supabase projenin açık olduğunu kontrol et. (${esc(e.message)})</p>`; };
+const fail = e => { $('#app').innerHTML = `<div class="wrap"><p class="err">Veriler alınamadı. İnternet bağlantını ve Supabase projenin açık olduğunu kontrol et. (${esc(e.message)})</p></div>`; };
 
-let cuis = [], rests = {}, loaded = false, cc = null, current = null, cats = [], prods = [], cart = {};
+/* ---------- durum ---------- */
+let cuis = [], rests = {}, loaded = false, current = null, prods = [], cats = [];
+let cat = 'all', sortMode = 'name', onlyOpen = false, sTok = 0, dTimer;
 
+/* ---------- sepet (tarayıcıda saklanır) ---------- */
+let cart = { rid: null, lines: {} };
+try {
+  const c = JSON.parse(localStorage.getItem('cart') || 'null');
+  if (c && c.rid && c.lines && typeof c.lines === 'object') {
+    const lines = {};
+    for (const [id, l] of Object.entries(c.lines)) if (l && l.q > 0 && isFinite(Number(l.price))) lines[id] = { name: String(l.name || ''), price: Number(l.price), q: Math.floor(l.q) };
+    if (Object.keys(lines).length) cart = { rid: c.rid, lines };
+  }
+} catch (e) {}
+const saveCart = () => { try { localStorage.setItem('cart', JSON.stringify(cart)); } catch (e) {} };
+const cartLines = () => Object.entries(cart.lines);
+const cartCount = () => cartLines().reduce((s, [, l]) => s + l.q, 0);
+const cartSub = () => cartLines().reduce((s, [, l]) => s + l.q * Number(l.price), 0);
+const clearCart = () => { cart = { rid: null, lines: {} }; saveCart(); };
+
+function add(id) {
+  const p = prods.find(x => x.id === id);
+  if (!p || !current) return;
+  if (cartCount() && cart.rid !== current.id) {
+    if (!confirm('Sepetinde başka bir restoranın ürünleri var. Sepeti temizleyip bu restorandan devam edelim mi?')) return;
+    clearCart();
+  }
+  cart.rid = current.id;
+  const l = cart.lines[id] || (cart.lines[id] = { name: p.name, price: Number(p.price), q: 0 });
+  l.q++;
+  saveCart(); updateCart(); drawMenu(); toast('Sepete eklendi ✓');
+}
+function change(id, d) {
+  const l = cart.lines[id];
+  if (!l) return;
+  l.q += d;
+  if (l.q <= 0) delete cart.lines[id];
+  if (!cartCount()) cart.rid = null;
+  saveCart(); updateCart(); drawMenu();
+}
+
+function updateCart() {
+  const n = cartCount(), r = rests[cart.rid];
+  $('#cartcount').textContent = n;
+  $('#drawrest').textContent = n && r ? r.name : '';
+  $('#cartitems').innerHTML = n
+    ? cartLines().map(([id, l]) => `<div class="cartrow"><div class="info"><strong>${esc(l.name)}</strong><small>${tl(l.price)}</small></div><div class="qty"><button data-dec="${esc(id)}" aria-label="Azalt">−</button><b>${l.q}</b><button data-inc="${esc(id)}" aria-label="Artır">+</button></div></div>`).join('')
+    : '<div class="empty">Sepetin şimdilik boş 🍽️<br>Menüden ürün ekle.</div>';
+  if (!n) { $('#drawfoot').innerHTML = ''; return; }
+  const fee = r ? Number(r.delivery_fee) : 0, min = r ? Number(r.min_order_amount) : 0, sub = cartSub();
+  const low = sub < min, closed = r && !r.is_open;
+  $('#drawfoot').innerHTML = `<div class="totalrow"><span>Ara toplam</span><strong>${tl(sub)}</strong></div><div class="totalrow"><span>Teslimat</span><strong>${tl(fee)}</strong></div><div class="totalrow grand"><span>Toplam</span><strong>${tl(sub + fee)}</strong></div>`
+    + (low ? `<div class="warn">Minimum sipariş tutarı ${tl(min)}. ${tl(min - sub)} daha ekle.</div>` : '')
+    + (closed ? '<div class="warn">Restoran şu an kapalı.</div>' : '')
+    + `<button class="checkout" data-go ${low || closed ? 'disabled' : ''}>${sess ? 'Siparişi tamamla' : 'Giriş yap ve siparişi tamamla'}</button>`;
+}
+const openCart = () => { updateCart(); $('#overlay').classList.add('open'); };
+const closeCart = () => $('#overlay').classList.remove('open');
+
+/* ---------- ana sayfa ---------- */
 async function home() {
-  current = null; cc = null;
+  current = null;
   if (loaded) return showHome();
-  $('#app').innerHTML = '<p class="note">Yükleniyor…</p>';
+  $('#app').innerHTML = '<div class="wrap"><p class="note">Yükleniyor…</p></div>';
   try {
     const [cu, list] = await Promise.all([
       api('cuisines?select=*&order=sort_order'),
@@ -116,28 +301,69 @@ async function home() {
 
 const inCuisine = id => Object.values(rests).filter(r => id === 'other' ? !r.cuisine_id : r.cuisine_id === id);
 
+function restCard(r) {
+  const c = cuis.find(x => x.id === r.cuisine_id) || {};
+  const tag = `<span class="tag ${r.is_open ? '' : 'off'}">${r.is_open ? 'Açık' : 'Kapalı'}</span>`;
+  return `<button class="card ${r.is_open ? '' : 'off'}" data-r="${esc(r.id)}">${pic(r.image_url, c.emoji, r.id, tag)}<span class="cardbody"><span class="name">${esc(r.name)}</span><span class="meta">${esc(r.description)}</span><span class="meta">🛵 Teslimat ${tl(r.delivery_fee)} · Min. ${tl(r.min_order_amount)}</span></span></button>`;
+}
+
+function fillHome() {
+  const q = norm($('#q') ? $('#q').value : '');
+  const hasOther = inCuisine('other').length > 0;
+  $('#cats').innerHTML = [{ id: 'all', name: 'Tümü', emoji: '🍽️' }, ...cuis, ...(hasOther ? [{ id: 'other', name: 'Diğer', emoji: '🍽️' }] : [])]
+    .map(c => `<button class="cat ${cat === c.id ? 'active' : ''}" data-cat="${esc(c.id)}"><span class="thumb"><span>${esc(c.emoji || '🍽️')}</span>${c.image_url ? `<img src="${esc(c.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span> ${esc(c.name)}</button>`).join('');
+  $('#filters').innerHTML = `<button class="filter ${sortMode === 'name' ? 'active' : ''}" data-sort="name">Öne çıkan</button><button class="filter ${sortMode === 'fee' ? 'active' : ''}" data-sort="fee">Teslimat ücreti ↑</button><button class="filter ${onlyOpen ? 'active' : ''}" data-onlyopen>Sadece açık olanlar</button>`;
+
+  let list = Object.values(rests).filter(r => {
+    if (cat === 'other' ? r.cuisine_id : (cat !== 'all' && r.cuisine_id !== cat)) return false;
+    if (onlyOpen && !r.is_open) return false;
+    if (!q) return true;
+    const c = cuis.find(x => x.id === r.cuisine_id);
+    return norm(r.name + ' ' + (r.description || '') + ' ' + (c ? c.name : '')).includes(q);
+  });
+  if (sortMode === 'fee') list.sort((a, b) => Number(a.delivery_fee) - Number(b.delivery_fee));
+  $('#list').innerHTML = list.length
+    ? list.map(restCard).join('')
+    : `<div class="empty">${Object.keys(rests).length ? 'Bu aramada sonuç bulamadık. Başka bir restoran veya yemek dene.' : 'Henüz restoran yok. veritabani.sql dosyasını Supabase\'de çalıştır.'}</div>`;
+
+  // Yemek adına göre arama (sunucudan)
+  clearTimeout(dTimer);
+  const tok = ++sTok, raw = $('#q') ? $('#q').value : '';
+  if (norm(raw).length < 2) { $('#dishes').innerHTML = ''; return; }
+  dTimer = setTimeout(() => findDishes(raw, tok), 250);
+}
+
+async function findDishes(raw, tok) {
+  const s = raw.replace(/[*,()%]/g, ' ').trim();
+  if (s.length < 2) return;
+  try {
+    const rows = await api(`menu_items?select=id,name,price,restaurant_id&is_available=eq.true&name=ilike.*${encodeURIComponent(s)}*&limit=12`);
+    if (tok !== sTok || !$('#dishes')) return;
+    const hits = rows.filter(x => rests[x.restaurant_id]);
+    $('#dishes').innerHTML = hits.length
+      ? `<div class="sectionhead"><div><h2>Yemekler</h2><p>“${esc(s)}” için bulunan ürünler</p></div></div><div class="dishes">${hits.map(x => `<button class="dish" data-r="${esc(x.restaurant_id)}"><span><b>${esc(x.name)}</b><small>${esc(rests[x.restaurant_id].name)}</small></span><span class="price">${tl(x.price)}</span></button>`).join('')}</div>`
+      : '';
+  } catch (e) { /* arama başarısızsa restoran listesi yine görünür */ }
+}
+
 function showHome() {
-  const tiles = cuis.map(c => ({ id: c.id, name: c.name, emoji: c.emoji, img: c.image_url }));
-  if (inCuisine('other').length) tiles.push({ id: 'other', name: 'Diğer', emoji: '🍽️' });
-  $('#app').innerHTML = '<h2>Ne yemek istersin?</h2>' + (tiles.length
-    ? '<div class="grid">' + tiles.map(t => `<button class="tile" data-c="${esc(t.id)}">${pic(t.img, t.emoji)}<span class="lbl"><b>${esc(t.name)}</b><small>${inCuisine(t.id).length} restoran</small></span></button>`).join('') + '</div>'
-    : '<p class="note">Henüz kategori yok. veritabani.sql dosyasını Supabase\'de çalıştır.</p>');
+  const open = Object.values(rests).filter(r => r.is_open).length;
+  $('#app').innerHTML = `<div class="wrap">
+<section class="hero"><div class="herotext"><div class="eyebrow">${Object.keys(rests).length} restoran · ${open} açık</div><h1>Canın ne çekiyor?<br>Biz getirelim.</h1><p>Restoran veya yemek ara, sepetini doldur, kapında karşıla.</p><div class="search"><input id="q" type="search" placeholder="Yemek veya restoran ara..." aria-label="Yemek veya restoran ara" autocomplete="off"></div></div><div class="heroart" aria-hidden="true"><span>🍔</span></div></section>
+<div class="sectionhead"><div><h2>Ne yemek istersin?</h2><p>Canının çektiği lezzeti seç</p></div></div>
+<div class="cats" id="cats"></div>
+<div id="dishes"></div>
+<div class="sectionhead"><div><h2>Restoranlar</h2><p>Menüsünü görmek için bir restoran seç</p></div><div class="filters" id="filters"></div></div>
+<section class="grid" id="list"></section></div>`;
+  fillHome();
 }
 
-function showCuisine(id) {
-  cc = id; current = null;
-  const c = cuis.find(x => x.id === id) || { name: 'Diğer', emoji: '🍽️' };
-  const list = inCuisine(id);
-  $('#app').innerHTML = `<button class="back" data-home>← Tüm kategoriler</button><h2>${esc(c.name)}</h2>` + (list.length
-    ? list.map(r => `<button class="rcard" data-r="${esc(r.id)}">${pic(r.image_url, c.emoji)}<div class="body"><div><strong>${esc(r.name)}</strong><span>${esc(r.description)}</span><small>Min. sipariş ${tl(r.min_order_amount)} · Teslimat ${tl(r.delivery_fee)}</small></div>${r.is_open ? '' : '<em>Kapalı</em>'}</div></button>`).join('')
-    : '<p class="note">Bu kategoride henüz restoran yok.</p>');
-  scrollTo(0, 0);
-}
-
+/* ---------- restoran sayfası ---------- */
 async function openRest(id) {
-  if (!current || current.id !== id) cart = {};
-  current = rests[id];
-  $('#app').innerHTML = '<p class="note">Menü yükleniyor…</p>';
+  const r = rests[id];
+  if (!r) return home();
+  current = r; closeCart();
+  $('#app').innerHTML = '<div class="wrap"><p class="note">Menü yükleniyor…</p></div>';
   try {
     const q = encodeURIComponent(id);
     [cats, prods] = await Promise.all([
@@ -149,51 +375,45 @@ async function openRest(id) {
   } catch (e) { fail(e); }
 }
 
-function prodHtml(p) {
-  const n = cart[p.id] || 0;
-  const ctrl = n
-    ? `<div class="q"><button data-sub="${esc(p.id)}" aria-label="Azalt">−</button>${n}<button data-add="${esc(p.id)}" aria-label="Artır">+</button></div>`
-    : `<button class="add" data-add="${esc(p.id)}" aria-label="${esc(p.name)} ekle">+</button>`;
-  return `<div class="prod">${pic(p.image_url, '🍽️')}<div class="t"><b>${esc(p.name)}</b><span>${esc(p.description)}</span><i>${tl(p.price)}</i></div>${ctrl}</div>`;
+function draw() {
+  const r = current, c = cuis.find(x => x.id === r.cuisine_id);
+  $('#app').innerHTML = `<div class="wrap"><button class="back" data-home>← Restoranlar</button>
+<section class="hero rest"><div class="herotext"><span class="badge ${r.is_open ? '' : 'off'}">${r.is_open ? 'Açık' : 'Kapalı'}</span><h1>${esc(r.name)}</h1><p>${esc(r.description)}</p><div class="chips"><i>📍 ${esc(r.address)}</i><i>Min. ${tl(r.min_order_amount)}</i><i>Teslimat ${tl(r.delivery_fee)}</i></div></div><div class="heroart" aria-hidden="true"><span>${esc((c && c.emoji) || '🍽️')}</span>${r.image_url ? `<img src="${esc(r.image_url)}" alt="" onerror="this.remove()">` : ''}</div></section>
+<div id="menu"></div></div>`;
+  drawMenu();
 }
 
-function draw() {
-  const y = scrollY, r = current;
-  const c = cuis.find(x => x.id === r.cuisine_id);
+function prodHtml(p) {
+  const l = cart.rid === current.id ? cart.lines[p.id] : null;
+  const ctrl = l
+    ? `<div class="qty"><button data-sub="${esc(p.id)}" aria-label="Azalt">−</button><b>${l.q}</b><button data-add="${esc(p.id)}" aria-label="Artır">+</button></div>`
+    : `<button class="add" data-add="${esc(p.id)}" aria-label="${esc(p.name)} sepete ekle" ${current.is_open ? '' : 'disabled'}>+</button>`;
+  return `<article class="card">${pic(p.image_url, '🍽️', p.id)}<div class="cardbody"><h3>${esc(p.name)}</h3><span class="meta">${esc(p.description)}</span><div class="cardbottom"><span class="price">${tl(p.price)}</span>${ctrl}</div></div></article>`;
+}
+
+function drawMenu() {
+  const el = $('#menu');
+  if (!el || !current) return;
+  const y = scrollY;
   const groups = cats.map(k => [k.name, prods.filter(p => p.category_id === k.id)]);
   const other = prods.filter(p => !cats.some(k => k.id === p.category_id));
   if (other.length) groups.push([cats.length ? 'Diğer' : 'Menü', other]);
-  const menu = groups.filter(g => g[1].length).map(g => `<h3>${esc(g[0])}</h3>${g[1].map(prodHtml).join('')}`).join('')
-    || '<p class="note">Bu restoranın menüsü henüz boş.</p>';
-
-  const items = prods.filter(p => cart[p.id]);
-  const count = items.reduce((s, p) => s + cart[p.id], 0);
-  const sub = items.reduce((s, p) => s + cart[p.id] * Number(p.price), 0);
-  const fee = Number(r.delivery_fee), min = Number(r.min_order_amount);
-  const low = count > 0 && sub < min;
-
-  const cartHtml = `<section id="cart"><h2 style="margin-top:0">Sepetin</h2>` + (count
-    ? items.map(p => `<div class="row"><span>${cart[p.id]} × ${esc(p.name)}</span><span>${tl(cart[p.id] * p.price)}</span></div>`).join('')
-      + `<div class="row"><span>Ara toplam</span><span>${tl(sub)}</span></div><div class="row"><span>Teslimat</span><span>${tl(fee)}</span></div><div class="row tot"><span>Toplam</span><span>${tl(sub + fee)}</span></div>`
-      + (low ? `<div class="warn">Minimum sipariş tutarı ${tl(min)}. ${tl(min - sub)} daha ekle.</div>` : '')
-      + (!r.is_open ? '<div class="warn">Restoran şu an kapalı.</div>' : '')
-      + `<button class="go" data-go ${low || !r.is_open ? 'disabled' : ''}>${sess ? 'Siparişi tamamla' : 'Giriş yap ve siparişi tamamla'}</button>`
-    : '<p class="note">Sepetin boş. Menüden ürün ekle.</p>') + '</section>';
-
-  const back = cc ? `<button class="back" data-c="${esc(cc)}">← ${esc((cuis.find(x => x.id === cc) || { name: 'Diğer' }).name)}</button>` : '<button class="back" data-home>← Kategoriler</button>';
-  $('#app').innerHTML = `${back}${pic(r.image_url, c && c.emoji, 'hero')}<h2>${esc(r.name)}</h2><p class="info">${esc(r.description)} · ${esc(r.address)}</p>${menu}${cartHtml}`
-    + (count ? `<a class="bar" href="#cart"><span>Sepeti gör (${count})</span><span>${tl(sub + fee)}</span></a>` : '');
+  el.innerHTML = groups.filter(g => g[1].length).map(g => `<div class="sectionhead"><div><h2>${esc(g[0])}</h2></div></div><div class="grid">${g[1].map(prodHtml).join('')}</div>`).join('')
+    || '<div class="sectionhead"></div><div class="empty">Bu restoranın menüsü henüz boş.</div>';
   scrollTo(0, y);
 }
 
+/* ---------- giriş / kayıt ---------- */
 function authView(mode) {
+  closeCart();
   const s = mode === 'signup';
-  $('#app').innerHTML = `<button class="back" data-menu>← Geri</button><h2>${s ? 'Kayıt ol' : 'Giriş yap'}</h2>
-<label for="em">E-posta</label><input id="em" type="email" autocomplete="email">
+  $('#app').innerHTML = `<div class="wrap"><div class="narrow"><button class="back" data-menu>← Geri</button><h2 class="title">${s ? 'Kayıt ol' : 'Giriş yap'}</h2>
+<div class="panel"><label for="em">E-posta</label><input id="em" type="email" autocomplete="email">
 <label for="pw">Şifre (en az 6 karakter)</label><input id="pw" type="password" autocomplete="${s ? 'new-password' : 'current-password'}">
 <div id="aerr" class="warn" hidden></div>
 <button class="go" data-submit="${mode}">${s ? 'Kayıt ol' : 'Giriş yap'}</button>
-<button class="sw" data-mode="${s ? 'login' : 'signup'}">${s ? 'Hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}</button>`;
+<button class="sw" data-mode="${s ? 'login' : 'signup'}">${s ? 'Hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}</button></div></div></div>`;
+  scrollTo(0, 0);
 }
 
 async function doAuth(mode) {
@@ -203,67 +423,90 @@ async function doAuth(mode) {
     const j = mode === 'signup' ? await auth('signup', { email, password }) : await auth('token?grant_type=password', { email, password });
     if (!j.access_token) { el.textContent = 'Kayıt oluşturuldu. E-postana gelen bağlantıyla hesabını doğrula, sonra giriş yap.'; return; }
     save(toSess(j)); who();
-    (current && Object.keys(cart).length) ? checkout() : home();
+    cartCount() ? checkout() : home();
   } catch (e) { el.textContent = e.message; }
 }
 
+/* ---------- ödeme ve sipariş ---------- */
 function checkout() {
-  const r = current, items = prods.filter(p => cart[p.id]);
-  const sub = items.reduce((s, p) => s + cart[p.id] * Number(p.price), 0);
-  $('#app').innerHTML = `<button class="back" data-menu>← Menüye dön</button><h2>Teslimat bilgileri</h2>
-<p class="info">${esc(r.name)} · ${tl(sub + Number(r.delivery_fee))}</p>
-<label for="a1">Adres</label><input id="a1" autocomplete="street-address">
+  closeCart();
+  const r = rests[cart.rid];
+  if (!r || !cartCount()) return home();
+  const sub = cartSub(), fee = Number(r.delivery_fee), min = Number(r.min_order_amount);
+  const low = sub < min, closed = !r.is_open;
+  $('#app').innerHTML = `<div class="wrap"><div class="narrow"><button class="back" data-menu>← Menüye dön</button><h2 class="title">Teslimat bilgileri</h2>
+<p class="info">${esc(r.name)} · ${cartCount()} ürün · ${tl(sub + fee)}</p>
+<div class="panel"><label for="a1">Adres</label><input id="a1" autocomplete="street-address">
 <label for="ct">Şehir</label><input id="ct" autocomplete="address-level2">
 <label for="pc">Posta kodu</label><input id="pc" inputmode="numeric" autocomplete="postal-code">
 <label for="ph">Telefon</label><input id="ph" type="tel" autocomplete="tel">
 <label for="nt">Kurye notu (isteğe bağlı)</label><textarea id="nt" rows="2"></textarea>
-<div id="cerr" class="warn" hidden></div>
-<button class="go" data-place>Siparişi ver</button>`;
+<div id="cerr" class="warn" ${low || closed ? '' : 'hidden'}>${low ? `Minimum sipariş tutarı ${tl(min)}. Menüye dönüp ürün ekle.` : closed ? 'Restoran şu an kapalı.' : ''}</div>
+<button class="go" data-place ${low || closed ? 'disabled' : ''}>Siparişi ver</button></div></div></div>`;
+  scrollTo(0, 0);
 }
 
 async function place() {
+  const r = rests[cart.rid];
+  if (!r || !cartCount()) return home();
   const v = id => $('#' + id).value.trim(), el = $('#cerr'), btn = $('[data-place]');
   const addr = { address_line1: v('a1'), city: v('ct'), postal_code: v('pc'), country_code: 'TR', phone: v('ph'), delivery_instructions: v('nt') };
   el.hidden = false;
   if (!addr.address_line1 || !addr.city || !addr.postal_code) { el.textContent = 'Adres, şehir ve posta kodunu doldur.'; return; }
   btn.disabled = true; el.textContent = 'Sipariş gönderiliyor…';
-  const items = Object.entries(cart).map(([menu_item_id, quantity]) => ({ menu_item_id, quantity }));
+  const items = cartLines().map(([menu_item_id, l]) => ({ menu_item_id, quantity: l.q }));
   try {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/create_food_order', {
+    const res = await fetch(SB_URL + '/rest/v1/rpc/create_food_order', {
       method: 'POST', headers: hdr(),
-      body: JSON.stringify({ p_customer_id: sess.uid, p_restaurant_id: current.id, p_delivery_address: addr, p_items: items })
+      body: JSON.stringify({ p_customer_id: sess.uid, p_restaurant_id: cart.rid, p_delivery_address: addr, p_items: items })
     });
-    const j = await r.json().catch(() => ({}));
-    if (r.status === 401) { save(null); who(); return authView('login'); }
-    if (!r.ok) throw new Error(j.message || 'Hata ' + r.status);
-    cart = {};
-    $('#app').innerHTML = `<div class="ok"><h2>Siparişin alındı</h2><p>Toplam: <b>${tl(j.total_amount)}</b></p><p class="note">Sipariş no: ${esc(j.order_id)}</p></div><button class="go" data-home>Kategorilere dön</button>`;
+    const j = await res.json().catch(() => ({}));
+    if (res.status === 401) { save(null); who(); return authView('login'); }
+    if (!res.ok) throw new Error(j.message || 'Hata ' + res.status);
+    clearCart(); updateCart();
+    $('#app').innerHTML = `<div class="wrap"><div class="narrow"><div class="ok"><div class="tick">✓</div><h2 class="title">Siparişin alındı</h2><p>Toplam: <b>${tl(j.total_amount)}</b></p><p class="note">Sipariş no: ${esc(j.order_id)}</p></div><button class="go" data-home>Restoranlara dön</button></div></div>`;
+    scrollTo(0, 0);
   } catch (e) { el.textContent = e.message; btn.disabled = false; }
 }
 
+/* ---------- olaylar ---------- */
+document.addEventListener('input', e => { if (e.target.id === 'q') fillHome(); });
+
 document.addEventListener('click', e => {
-  const b = e.target.closest('button,h1');
+  if (e.target.id === 'overlay') return closeCart();
+  const b = e.target.closest('button');
   if (!b) return;
   const d = b.dataset;
-  if ('home' in d) return home();
-  if (d.c) return showCuisine(d.c);
-  if ('menu' in d) return current ? draw() : home();
+  if ('home' in d) { closeCart(); return home(); }
+  if ('opencart' in d) return openCart();
+  if ('closecart' in d) return closeCart();
+  if (d.cat) { cat = d.cat; return fillHome(); }
+  if (d.sort) { sortMode = d.sort; return fillHome(); }
+  if ('onlyopen' in d) { onlyOpen = !onlyOpen; return fillHome(); }
+  if ('menu' in d) return current ? draw() : (cart.rid ? openRest(cart.rid) : home());
   if ('in' in d) return authView('login');
   if ('out' in d) { save(null); who(); return current ? draw() : home(); }
   if (d.mode) return authView(d.mode);
   if (d.submit) return doAuth(d.submit);
   if ('place' in d) return place();
   if (d.r) return openRest(d.r);
-  if (d.add) { cart[d.add] = (cart[d.add] || 0) + 1; return draw(); }
-  if (d.sub) { cart[d.sub] = (cart[d.sub] || 0) - 1; if (cart[d.sub] <= 0) delete cart[d.sub]; return draw(); }
-  if ('go' in d) return sess ? checkout() : authView('login');
+  if (d.add) return add(d.add);
+  if (d.sub) return change(d.sub, -1);
+  if (d.inc) return change(d.inc, 1);
+  if (d.dec) return change(d.dec, -1);
+  if ('go' in d) { closeCart(); return sess ? checkout() : authView('login'); }
 });
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCart(); });
 
 (async () => {
   if (sess && sess.exp < Date.now()) {
     try { save(toSess(await auth('token?grant_type=refresh_token', { refresh_token: sess.refresh }))); } catch (e) { save(null); }
   }
-  who(); home();
+  who();
+  await home();
+  if (cart.rid && loaded && !rests[cart.rid]) clearCart();
+  updateCart();
 })();
 </script>
 </body>
