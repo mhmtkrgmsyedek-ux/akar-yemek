@@ -253,7 +253,7 @@ async function registerRest() {
   const dd = v('rdd').split(',').map(x => x.trim()).filter(Boolean).slice(0, 20);
   authBusy = true; btn.disabled = true; el.textContent = 'Gönderiliyor…';
   try {
-    await postRow('restaurants', { owner_id: sess.uid, name, description: v('rd') || null, address, phone, city, district, delivery_districts: dd, min_order_amount: min, delivery_fee: fee, cuisine_id: v('rc') || null, image_url: img || null, is_active: false, is_open: true });
+    await postRow('restaurants', { owner_id: sess.uid, name, description: v('rd') || null, address, phone, city, district, delivery_districts: dd, min_order_amount: min, delivery_fee: fee, cuisine_id: v('rc') || null, image_url: img || null, is_active: false });
     await start();
   } catch (e) { el.textContent = authMsg(e.message); }
   finally { authBusy = false; if ($('[data-rsubmit]')) $('[data-rsubmit]').disabled = false; }
