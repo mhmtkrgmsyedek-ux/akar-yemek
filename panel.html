@@ -54,6 +54,11 @@ label{display:block;font-weight:700;margin:14px 0 5px;font-size:14px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;z-index:20;max-width:90%;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%)}
 a{color:var(--red-d)}
+.sw{color:var(--red);font-weight:700;margin-top:12px;padding:6px 0;display:block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{color:var(--muted);font-size:13px;margin:4px 0 0}
+.wide{max-width:560px;margin:24px auto}
+.wide .go{width:100%;margin-top:18px;padding:15px}
 </style>
 </head>
 <body>
@@ -82,6 +87,10 @@ const authMsg = m => {
   m = String(m || '');
   if (/invalid login|invalid_credentials/i.test(m)) return 'E-posta veya şifre hatalı.';
   if (/not confirmed/i.test(m)) return 'E-postan henüz doğrulanmamış.';
+  if (/expired|invalid.*(token|otp)|token.*invalid|otp/i.test(m)) return 'Kod hatalı ya da süresi dolmuş. Yeni kod isteyebilirsin.';
+  if (/already registered|already been registered/i.test(m)) return 'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.';
+  if (/password.*(short|least|characters)|weak/i.test(m)) return 'Şifre en az 8 karakter olmalı ve hem harf hem rakam içermeli.';
+  if (/valid email|invalid.*email|unable to validate email/i.test(m)) return 'Geçerli bir e-posta adresi yaz.';
   if (/rate limit|too many|security purposes/i.test(m)) return 'Çok fazla deneme yapıldı. Bir dakika bekleyip tekrar dene.';
   if (/failed to fetch|networkerror|load failed/i.test(m)) return 'Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.';
   return m || 'İşlem başarısız.';
@@ -125,7 +134,8 @@ function showLogin() {
 <label for="em">E-posta</label><input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
 <label for="pw">Şifre</label><input id="pw" type="password" autocomplete="current-password" autocapitalize="none">
 <p id="aerr" class="err" hidden style="margin:12px 0 0"></p>
-<button class="go" data-login>Giriş yap</button></div></div>`;
+<button class="go" data-login>Giriş yap</button>
+<button class="sw" data-rsignup>Restoranın mı var? Restoran olarak kayıt ol</button></div></div>`;
 }
 let authBusy = false, authFails = 0, authLock = 0;
 async function doLogin() {
@@ -138,6 +148,122 @@ async function doLogin() {
   try { save(toSess(await authReq('token?grant_type=password', { email, password }))); authFails = 0; who(); await start(); }
   catch (e) { if (++authFails >= 5) { authLock = Date.now() + 60000; authFails = 0; } el.hidden = false; el.textContent = authMsg(e.message); }
   finally { authBusy = false; if ($('[data-login]')) $('[data-login]').disabled = false; }
+}
+
+
+/* ---------- restoran kaydı ---------- */
+let codeEmail = '', resendAt = 0;
+function signupView() {
+  clearInterval(pnl.timer); who();
+  $('#app').innerHTML = `<div class="wrap"><div class="wide card"><h2 class="title">Restoran olarak kayıt ol</h2><p class="info">Önce hesabını oluştur, sonra restoranının bilgilerini gireceksin.</p>
+<label for="sem">E-posta</label><input id="sem" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
+<label for="spw">Şifre (en az 8 karakter, harf ve rakam)</label><input id="spw" type="password" autocomplete="new-password" autocapitalize="none">
+<p id="serr" class="err" hidden style="margin:12px 0 0"></p>
+<button class="go" data-rsignupgo>Kayıt ol</button>
+<button class="sw" data-rlogin>Hesabın var mı? Giriş yap</button></div></div>`;
+  scrollTo(0, 0);
+}
+async function doSignup() {
+  if (authBusy) return;
+  const email = $('#sem').value.trim().toLowerCase(), password = $('#spw').value, el = $('#serr'), btn = $('[data-rsignupgo]');
+  el.hidden = false;
+  if (!email || !password) { el.textContent = 'E-posta ve şifreyi yaz.'; return; }
+  if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) { el.textContent = 'Şifre en az 8 karakter olmalı ve hem harf hem rakam içermeli.'; return; }
+  authBusy = true; btn.disabled = true; el.textContent = 'Bekle…';
+  try {
+    const j = await authReq('signup', { email, password });
+    if (!j.access_token) {
+      if (j.user && Array.isArray(j.user.identities) && !j.user.identities.length) { el.textContent = 'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.'; return; }
+      return codeView(email);
+    }
+    save(toSess(j)); who(); await start();
+  } catch (e) { el.textContent = authMsg(e.message); }
+  finally { authBusy = false; if ($('[data-rsignupgo]')) $('[data-rsignupgo]').disabled = false; }
+}
+function codeView(email, note) {
+  codeEmail = email;
+  $('#app').innerHTML = `<div class="wrap"><div class="wide card"><h2 class="title">E-postanı doğrula</h2>
+<p class="info">${esc(note || 'Hesabını doğrulamak için e-postana bir kod gönderdik.')}</p><p class="info"><b>${esc(email)}</b> adresine gelen kodu yaz. Gelmediyse spam klasörüne de bak.</p>
+<label for="cd">Doğrulama kodu</label><input id="cd" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Örn. 123456">
+<p id="cderr" class="err" hidden style="margin:12px 0 0"></p>
+<button class="go" data-verify>Doğrula</button>
+<button class="sw" data-resend>Kodu tekrar gönder</button></div></div>`;
+  scrollTo(0, 0);
+  const i = $('#cd'); if (i) i.focus();
+}
+async function verifyCode() {
+  if (authBusy) return;
+  const el = $('#cderr'), btn = $('[data-verify]');
+  const token = ($('#cd').value || '').replace(/\s+/g, '');
+  el.hidden = false;
+  if (!/^\d{4,10}$/.test(token)) { el.textContent = 'E-postana gelen kodu rakamlarla yaz.'; return; }
+  authBusy = true; btn.disabled = true; el.textContent = 'Bekle…';
+  try {
+    const j = await authReq('verify', { type: 'signup', email: codeEmail, token });
+    if (!j.access_token) throw new Error('Doğrulama tamamlanamadı. Tekrar dene.');
+    save(toSess(j)); who(); await start();
+  } catch (e) { el.textContent = authMsg(e.message); }
+  finally { authBusy = false; if ($('[data-verify]')) $('[data-verify]').disabled = false; }
+}
+async function resendCode() {
+  const el = $('#cderr'); el.hidden = false;
+  const wait = Math.ceil((resendAt - Date.now()) / 1000);
+  if (wait > 0) { el.textContent = 'Yeni kod için ' + wait + ' saniye bekle.'; return; }
+  el.textContent = 'Gönderiliyor…';
+  try { await authReq('resend', { type: 'signup', email: codeEmail }); resendAt = Date.now() + 60000; el.textContent = 'Yeni kod gönderildi. Gelen kutunu ve spam klasörünü kontrol et.'; }
+  catch (e) { el.textContent = authMsg(e.message); }
+}
+const postRow = async (path, body) => {
+  await fresh();
+  if (!sess) { showLogin(); throw new Error('Oturum kapandı'); }
+  const r = await fetch(SB_URL + '/rest/v1/' + path, { method: 'POST', headers: { ...hdr(), Prefer: 'return=minimal' }, body: JSON.stringify(body) });
+  if (r.status === 401) { save(null); showLogin(); throw new Error('Oturum kapandı'); }
+  if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.message || ('Sunucu hatası: ' + r.status)); }
+};
+async function registerView() {
+  let cu = [];
+  try { cu = await api('cuisines?select=id,name&order=sort_order'); } catch (e) {}
+  if (!sess) return;
+  $('#app').innerHTML = `<div class="wrap"><div class="wide card"><h2 class="title">Restoranını kaydet</h2><p class="info">Bilgilerini gir. Başvurun Akar Yemek tarafından onaylanınca restoranın sitede görünür ve siparişler bu panele düşer.</p>
+<label for="rn">Restoran adı</label><input id="rn" maxlength="80" autocomplete="organization">
+<label for="rc">Mutfak türü</label><select id="rc"><option value="">Seç</option>${cu.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select>
+<label for="rd">Kısa açıklama</label><input id="rd" maxlength="300" placeholder="Örn. Ev yapımı pasta ve tatlılar">
+<label for="ra">Adres</label><input id="ra" maxlength="200" autocomplete="street-address">
+<div class="two"><div><label for="rcity">Şehir</label><input id="rcity" maxlength="60" placeholder="Isparta"></div><div><label for="rdist">İlçe</label><input id="rdist" maxlength="60" placeholder="Merkez"></div></div>
+<label for="rdd">Teslimat yaptığın diğer ilçeler (isteğe bağlı)</label><input id="rdd" maxlength="200" placeholder="Virgülle ayır: Yalvaç, Eğirdir"><p class="hint">Boş bırakırsan sadece yukarıdaki ilçeye teslimat yaparsın.</p>
+<label for="rp">Telefon</label><input id="rp" type="tel" inputmode="tel" maxlength="20" autocomplete="tel">
+<div class="two"><div><label for="rmin">Minimum sipariş (₺)</label><input id="rmin" inputmode="decimal" value="0"></div><div><label for="rfee">Teslimat ücreti (₺)</label><input id="rfee" inputmode="decimal" value="0"></div></div>
+<label for="rimg">Fotoğraf bağlantısı (isteğe bağlı)</label><input id="rimg" type="url" inputmode="url" placeholder="https://..." autocapitalize="none"><p class="hint">Bağlantı https:// ile başlamalı.</p>
+<p id="rerr" class="err" hidden style="margin:12px 0 0"></p>
+<button class="go" data-rsubmit>Başvuruyu gönder</button></div></div>`;
+  scrollTo(0, 0);
+}
+async function registerRest() {
+  if (authBusy) return;
+  const v = id => ($('#' + id).value || '').trim(), el = $('#rerr'), btn = $('[data-rsubmit]');
+  const num = id => Number(v(id).replace(',', '.') || 0);
+  el.hidden = false;
+  const name = v('rn'), address = v('ra'), phone = v('rp'), city = v('rcity'), district = v('rdist'), img = v('rimg');
+  const min = num('rmin'), fee = num('rfee');
+  if (name.length < 2) { el.textContent = 'Restoran adını yaz.'; return; }
+  if (!address || !city || !district) { el.textContent = 'Adres, şehir ve ilçeyi yaz.'; return; }
+  if (!/^[\d\s+()-]{7,20}$/.test(phone)) { el.textContent = 'Geçerli bir telefon numarası yaz.'; return; }
+  if (!isFinite(min) || min < 0 || min > 10000 || !isFinite(fee) || fee < 0 || fee > 1000) { el.textContent = 'Minimum sipariş ve teslimat ücretini rakamla yaz.'; return; }
+  if (img && !/^https:\/\//i.test(img)) { el.textContent = 'Fotoğraf bağlantısı https:// ile başlamalı.'; return; }
+  const dd = v('rdd').split(',').map(x => x.trim()).filter(Boolean).slice(0, 20);
+  authBusy = true; btn.disabled = true; el.textContent = 'Gönderiliyor…';
+  try {
+    await postRow('restaurants', { owner_id: sess.uid, name, description: v('rd') || null, address, phone, city, district, delivery_districts: dd, min_order_amount: min, delivery_fee: fee, cuisine_id: v('rc') || null, image_url: img || null, is_active: false, is_open: true });
+    await start();
+  } catch (e) { el.textContent = authMsg(e.message); }
+  finally { authBusy = false; if ($('[data-rsubmit]')) $('[data-rsubmit]').disabled = false; }
+}
+function pendingView(rs) {
+  clearInterval(pnl.timer);
+  $('#app').innerHTML = `<div class="wrap"><div class="wide card"><h2 class="title">Başvurun alındı</h2>
+<p class="info"><b>${esc(rs[0].name)}</b> için başvurun onay bekliyor. Onaylanınca restoranın sitede görünür ve siparişler bu sayfaya düşer.</p>
+<p class="info">Onay durumunu görmek için aşağıdaki düğmeyle sayfayı yenileyebilirsin.</p>
+<button class="go" data-rrefresh>Onay durumunu kontrol et</button></div></div>`;
 }
 
 /* ---------- panel ---------- */
@@ -170,7 +296,9 @@ async function start() {
   try {
     pnl.rests = await api('restaurants?select=*&owner_id=eq.' + encodeURIComponent(sess.uid) + '&order=name');
   } catch (e) { if (sess) $('#app').innerHTML = `<div class="wrap"><p class="err">Veriler alınamadı (${esc(e.message)})</p></div>`; return; }
-  if (!pnl.rests.length) { $('#app').innerHTML = '<div class="wrap"><div class="empty"><b>Bu hesaba bağlı restoran yok.</b><br>Restoranını hesabına bağlatmak için Akar Yemek ile iletişime geç.</div></div>'; return; }
+  const allRests = pnl.rests; pnl.rests = allRests.filter(r => r.is_active);
+  if (!allRests.length) return registerView();
+  if (!pnl.rests.length) return pendingView(allRests);
   if (!pnl.rid || !cur()) pnl.rid = pnl.rests[0].id;
   pnl.seen = null; pnl.tab = 'new'; pnl.orders = []; pnl.items = {}; pnl.menu = null;
   drawPanel(); renderPanel(); keepAwake();
@@ -266,6 +394,13 @@ async function toggleItem(id) {
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   const d = b.dataset;
+  if ('rsignup' in d) return signupView();
+  if ('rlogin' in d) return showLogin();
+  if ('rsignupgo' in d) return doSignup();
+  if ('verify' in d) return verifyCode();
+  if ('resend' in d) return resendCode();
+  if ('rsubmit' in d) return registerRest();
+  if ('rrefresh' in d) return start();
   if ('login' in d) return doLogin();
   if ('out' in d) { signOut(); clearInterval(pnl.timer); try { pnl.wake && pnl.wake.release(); } catch (x) {} pnl = { ...pnl, rests: [], rid: null, orders: [], items: {}, menu: null, seen: null, sound: false, wake: null }; document.title = 'Restoran paneli – Akar Yemek'; return showLogin(); }
   if ('popen' in d) return toggleOpen();
@@ -279,6 +414,8 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.target.id === 'em' || e.target.id === 'pw')) { e.preventDefault(); doLogin(); }
+  if (e.key === 'Enter' && (e.target.id === 'sem' || e.target.id === 'spw')) { e.preventDefault(); doSignup(); }
+  if (e.key === 'Enter' && e.target.id === 'cd') { e.preventDefault(); verifyCode(); }
 });
 
 (async () => { await fresh(); who(); sess ? start() : showLogin(); })();
