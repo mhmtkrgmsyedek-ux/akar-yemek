@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#202124">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2NEKsk1+0Hn6ISJk1pG5CPaMiogivQR89mZazs9/h6c='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://bspjvnxnofkhnocjwsjb.supabase.co https://turkiyeapi.dev; base-uri 'none'; object-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://bspjvnxnofkhnocjwsjb.supabase.co https://turkiyeapi.dev; base-uri 'none'; object-src 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Akar Yemek</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap" rel="stylesheet">
@@ -648,7 +648,7 @@ function authView(mode) {
   const s = mode === 'signup';
   $('#app').innerHTML = `<div class="wrap"><div class="narrow"><button class="back" data-menu>← Geri</button><h2 class="title">${s ? 'Kayıt ol' : 'Giriş yap'}</h2>
 <div class="panel"><label for="em">E-posta</label><input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next">
-<label for="pw">Şifre (en az 6 karakter)</label><input id="pw" type="password" autocomplete="${s ? 'new-password' : 'current-password'}" autocapitalize="none" autocorrect="off" enterkeyhint="go">
+<label for="pw">Şifre (en az 8 karakter, harf ve rakam)</label><input id="pw" type="password" autocomplete="${s ? 'new-password' : 'current-password'}" autocapitalize="none" autocorrect="off" enterkeyhint="go">
 <div id="aerr" class="warn" hidden></div>
 <button class="go" data-submit="${mode}">${s ? 'Kayıt ol' : 'Giriş yap'}</button>
 <button class="sw" data-mode="${s ? 'login' : 'signup'}">${s ? 'Hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}</button></div></div></div>`;
@@ -658,7 +658,8 @@ function authView(mode) {
 const authMsg = m => {
   m = String(m || '');
   if (/invalid login|invalid_credentials/i.test(m)) return 'E-posta veya şifre hatalı.';
-  if (/not confirmed/i.test(m)) return 'E-postan henüz doğrulanmamış. Gelen kutundaki (ve spam) bağlantıya tıkla, sonra giriş yap.';
+  if (/not confirmed/i.test(m)) return 'E-postan henüz doğrulanmamış.';
+  if (/expired|invalid.*(token|otp)|token.*invalid|otp/i.test(m)) return 'Kod hatalı ya da süresi dolmuş. Yeni kod isteyebilirsin.';
   if (/already registered|already been registered/i.test(m)) return 'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.';
   if (/password.*(short|least|characters)|weak/i.test(m)) return 'Şifre en az 6 karakter olmalı.';
   if (/valid email|invalid.*email|unable to validate email/i.test(m)) return 'Geçerli bir e-posta adresi yaz.';
@@ -677,11 +678,55 @@ async function doAuth(mode) {
   authBusy = true; if (btn) btn.disabled = true; el.textContent = 'Bekle…';
   try {
     const j = mode === 'signup' ? await auth('signup', { email, password }) : await auth('token?grant_type=password', { email, password });
-    if (!j.access_token) { el.textContent = 'Kayıt oluşturuldu. E-postana gelen bağlantıyla hesabını doğrula, sonra giriş yap.'; return; }
+    if (!j.access_token) {
+      if (j.user && Array.isArray(j.user.identities) && !j.user.identities.length) { el.textContent = 'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.'; return; }
+      return codeView(email);
+    }
     authFails = 0; save(toSess(j)); who();
-    cartCount() ? checkout() : (getAddr() ? home() : accView());
-  } catch (e) { if (++authFails >= 5) { authLock = Date.now() + 60000; authFails = 0; } el.textContent = authMsg(e.message); }
+    afterLogin();
+  } catch (e) {
+    if (/not confirmed/i.test(e.message || '')) { try { await auth('resend', { type: 'signup', email }); } catch (_) {} return codeView(email, 'E-postan henüz doğrulanmamış. Sana yeni bir kod gönderdik.'); }
+    if (++authFails >= 5) { authLock = Date.now() + 60000; authFails = 0; } el.textContent = authMsg(e.message);
+  }
   finally { authBusy = false; if (btn) btn.disabled = false; }
+}
+
+const afterLogin = () => cartCount() ? checkout() : (getAddr() ? home() : accView());
+
+/* ---------- e-posta doğrulama kodu ---------- */
+let codeEmail = '', resendAt = 0;
+function codeView(email, note) {
+  codeEmail = email; closeCart();
+  $('#app').innerHTML = `<div class="wrap"><div class="narrow"><button class="back" data-mode="login">← Geri</button><h2 class="title">E-postanı doğrula</h2>
+<p class="info">${esc(note || 'Hesabını doğrulamak için e-postana bir kod gönderdik.')}</p><p class="info"><b>${esc(email)}</b> adresine gelen kodu yaz. Gelmediyse spam klasörüne de bak.</p>
+<div class="panel"><label for="cd">Doğrulama kodu</label><input id="cd" inputmode="numeric" autocomplete="one-time-code" maxlength="10" enterkeyhint="go" placeholder="Örn. 123456">
+<div id="cderr" class="warn" hidden></div>
+<button class="go" data-verify>Doğrula</button>
+<button class="sw" data-resend>Kodu tekrar gönder</button></div></div></div>`;
+  scrollTo(0, 0);
+  const i = $('#cd'); if (i) i.focus();
+}
+async function verifyCode() {
+  if (authBusy) return;
+  const el = $('#cderr'), btn = document.querySelector('[data-verify]');
+  const token = ($('#cd').value || '').replace(/\s+/g, '');
+  el.hidden = false;
+  if (!/^\d{4,10}$/.test(token)) { el.textContent = 'E-postana gelen kodu rakamlarla yaz.'; return; }
+  authBusy = true; if (btn) btn.disabled = true; el.textContent = 'Bekle…';
+  try {
+    const j = await auth('verify', { type: 'signup', email: codeEmail, token });
+    if (!j.access_token) throw new Error('Doğrulama tamamlanamadı. Tekrar dene.');
+    authFails = 0; save(toSess(j)); who(); afterLogin();
+  } catch (e) { el.textContent = authMsg(e.message); }
+  finally { authBusy = false; if (btn) btn.disabled = false; }
+}
+async function resendCode() {
+  const el = $('#cderr'); el.hidden = false;
+  const wait = Math.ceil((resendAt - Date.now()) / 1000);
+  if (wait > 0) { el.textContent = 'Yeni kod için ' + wait + ' saniye bekle.'; return; }
+  el.textContent = 'Gönderiliyor…';
+  try { await auth('resend', { type: 'signup', email: codeEmail }); resendAt = Date.now() + 60000; el.textContent = 'Yeni kod gönderildi. Gelen kutunu ve spam klasörünü kontrol et.'; }
+  catch (e) { el.textContent = authMsg(e.message); }
 }
 
 /* ---------- ödeme ve sipariş ---------- */
@@ -987,6 +1032,8 @@ document.addEventListener('click', e => {
   if ('out' in d) { clearInterval(pnl.timer); signOut(); who(); return current ? draw() : home(); }
   if (d.mode) return authView(d.mode);
   if (d.submit) return doAuth(d.submit);
+  if ('verify' in d) return verifyCode();
+  if ('resend' in d) return resendCode();
   if ('place' in d) return place();
   if (d.r) return openRest(d.r);
   if (d.add) return add(d.add);
@@ -998,6 +1045,7 @@ document.addEventListener('click', e => {
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeCart();
+  if (e.key === 'Enter' && e.target.id === 'cd') { e.preventDefault(); verifyCode(); return; }
   if (e.key === 'Enter' && (e.target.id === 'em' || e.target.id === 'pw')) { e.preventDefault(); const b = document.querySelector('[data-submit]'); if (b) doAuth(b.dataset.submit); }
 });
 
