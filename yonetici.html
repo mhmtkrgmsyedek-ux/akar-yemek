@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#e53d32">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://bspjvnxnofkhnocjwsjb.supabase.co; base-uri 'none'; object-src 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Yönetici – Akar Yemek</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23e53d32'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23fff' font-family='Arial' font-weight='bold'%3EP%3C/text%3E%3C/svg%3E">
+<style>
+:root{--red:#e53d32;--red-d:#b92c23;--ink:#202124;--muted:#6f7378;--line:#eee5df;--green:#16865b;--err:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#faf7f4;padding-bottom:env(safe-area-inset-bottom,0)}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,select{font:inherit;font-size:16px;width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+h1,h2,h3{margin:0}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0))}
+.brand{display:flex;align-items:center;gap:8px;font-family:Poppins,Inter,sans-serif;font-weight:800;font-size:20px;letter-spacing:-.7px;line-height:1}
+.brand svg{width:34px;height:34px}.brand b{color:var(--red)}
+.brand small{display:block;font-family:Inter,sans-serif;font-weight:700;font-size:11px;letter-spacing:0;color:var(--muted);margin-top:3px}
+.who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.who span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ghost{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px}
+.ghost:hover{border-color:#ffc2b7;color:var(--red)}
+.go{background:var(--red);color:#fff;border-radius:12px;padding:12px 16px;font-weight:800;font-size:15px}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+.title{font-size:24px;letter-spacing:-.5px;margin:6px 0 4px}
+.info{color:var(--muted);margin:0 0 8px}
+.err{color:var(--err);background:#fff;border:1px solid var(--err);padding:12px;border-radius:12px}
+.empty{padding:34px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px;background:#fff}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px}
+label{display:block;font-weight:700;margin:14px 0 5px;font-size:14px}
+.login{max-width:400px;margin:40px auto}
+.login .go{width:100%;margin-top:18px;padding:15px}
+.badge{display:inline-block;font-size:12px;font-weight:800;padding:5px 10px;border-radius:99px;background:#d6f0e3;color:#0a5a33}
+.prow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.prow button{flex:1;min-width:130px}
+.soundbar{width:100%;background:#fff1ef;border:1px solid #ffb8ae;color:var(--red-d);border-radius:14px;padding:14px;font-weight:800;margin:10px 0;text-align:center}
+.ptabs{display:flex;gap:6px;overflow-x:auto;margin:12px 0;padding-bottom:4px}
+.ptabs button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:9px 14px;font-weight:750;font-size:14px;white-space:nowrap}
+.ptabs button.on{background:var(--red);border-color:var(--red);color:#fff}
+.ptabs i{font-style:normal;background:#fff;color:var(--red);border-radius:99px;padding:1px 7px;margin-left:4px;font-size:12px;font-weight:800}
+.ocard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px}
+.ocard.fresh{border-color:var(--red);box-shadow:0 0 0 3px #e53d3222}
+.pit{margin:8px 0;padding-left:20px;font-weight:650}
+.pmi{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.pmi button{border:1px solid var(--line);border-radius:99px;padding:8px 13px;font-weight:750;font-size:13px;white-space:nowrap;background:#fff}
+.pmi button.off{background:var(--ink);color:#fff;border-color:var(--ink)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;z-index:20;max-width:90%;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%)}
+a{color:var(--red-d)}
+.sw{color:var(--red);font-weight:700;margin-top:12px;padding:6px 0;display:block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{color:var(--muted);font-size:13px;margin:4px 0 0}
+.wide{max-width:560px;margin:24px auto}
+.wide .go{width:100%;margin-top:18px;padding:15px}
+.big{width:100%;padding:16px;font-size:17px;margin:10px 0}
+.mf{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.pmi{flex-wrap:wrap}.pmi>span:last-child{display:flex;gap:6px;flex-wrap:wrap}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.kpi div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.kpi b{display:block;font-size:19px;margin-top:3px}.kpi span{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="bar"><div class="brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M27.1 7.2 26.5 7.9 8.7 46.9 5.1 55.1 5.1 56.4 6.3 57.0 13.7 57.0 14.5 56.8 15.7 55.8 23.5 44.2 24.8 41.7 24.9 41.0 23.7 38.0 23.9 35.4 24.7 33.5 33.5 21.7 35.0 20.9 35.7 21.4 35.7 22.2 28.2 32.7 28.0 33.4 28.2 33.9 28.8 34.1 29.4 33.7 36.7 23.7 37.9 22.5 38.8 22.7 38.9 23.6 31.1 34.8 31.1 35.8 31.5 36.0 32.4 35.6 40.6 24.6 41.5 24.5 41.7 25.4 34.3 36.3 33.9 37.3 34.1 37.7 35.1 37.7 35.9 36.8 41.0 29.7 43.4 26.8 44.4 26.6 44.7 26.9 44.7 27.7 38.9 36.8 34.9 41.9 33.9 42.8 32.4 43.4 29.0 43.6 27.8 44.7 27.4 45.6 28.2 45.9 38.7 45.9 39.4 46.1 39.9 46.7 43.2 55.3 44.0 56.3 45.1 57.0 57.5 57.0 58.5 56.7 58.9 55.6 49.8 34.8 50.0 34.2 51.7 33.5 52.1 32.8 52.1 31.9 42.0 8.9 41.3 7.8 40.1 7.1 36.2 7.0 35.0 7.3 34.0 11.2 33.5 16.4 33.2 16.8 32.8 15.5 32.5 9.5 31.8 7.6 30.8 7.0 28.3 6.8z" fill="#e53d32"/></svg><div>Akar <b>Yemek</b><small>Yönetici</small></div></div><div class="who" id="who"></div></header>
+<main id="app"></main>
+<div id="toast"></div>
+<script>
+const SB_URL = 'https://bspjvnxnofkhnocjwsjb.supabase.co';
+const SB_KEY = 'sb_publishable_LYozx29A9SxRFBEXLkxftg_28peojyK';
+if (window.top !== window.self) { document.documentElement.style.display = 'none'; try { window.top.location = window.self.location; } catch (e) {} }
+const $ = s => document.querySelector(s);
+const isId = v => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+const telOf = v => String(v || '').replace(/[^\d+]/g, '').slice(0, 20);
+const PAYS = { cash: 'Kapıda ödeme', card: 'Kredi kartı' };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tl = n => (Number(n) || 0).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ' ₺';
+let toastTimer;
+function toast(s) { const el = $('#toast'); el.textContent = s; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2600); }
+
+/* ---------- oturum ---------- */
+let sess = null;
+try { sess = JSON.parse(localStorage.getItem('sess') || 'null'); } catch (e) {}
+const save = s => { sess = s; try { s ? localStorage.setItem('sess', JSON.stringify(s)) : localStorage.removeItem('sess'); } catch (e) {} };
+const hdr = () => ({ apikey: SB_KEY, 'Content-Type': 'application/json', ...(sess ? { Authorization: 'Bearer ' + sess.token } : {}) });
+const authMsg = m => {
+  m = String(m || '');
+  if (/invalid login|invalid_credentials/i.test(m)) return 'E-posta veya şifre hatalı.';
+  if (/not confirmed/i.test(m)) return 'E-postan henüz doğrulanmamış.';
+  if (/expired|invalid.*(token|otp)|token.*invalid|otp/i.test(m)) return 'Kod hatalı ya da süresi dolmuş. Yeni kod isteyebilirsin.';
+  if (/already registered|already been registered/i.test(m)) return 'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.';
+  if (/password.*(short|least|characters)|weak/i.test(m)) return 'Şifre en az 8 karakter olmalı ve hem harf hem rakam içermeli.';
+  if (/valid email|invalid.*email|unable to validate email/i.test(m)) return 'Geçerli bir e-posta adresi yaz.';
+  if (/rate limit|too many|security purposes/i.test(m)) return 'Çok fazla deneme yapıldı. Bir dakika bekleyip tekrar dene.';
+  if (/failed to fetch|networkerror|load failed/i.test(m)) return 'Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.';
+  return m || 'İşlem başarısız.';
+};
+const authReq = async (path, body) => {
+  const r = await fetch(SB_URL + '/auth/v1/' + path, { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.msg || j.error_description || j.message || 'İşlem başarısız');
+  return j;
+};
+const toSess = j => ({ token: j.access_token, refresh: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000 - 60000, uid: j.user.id, email: j.user.email });
+async function fresh() {
+  if (sess && sess.exp < Date.now()) {
+    try { save(toSess(await authReq('token?grant_type=refresh_token', { refresh_token: sess.refresh }))); } catch (e) { save(null); }
+  }
+}
+const api = async path => {
+  await fresh();
+  if (!sess) { showLogin(); throw new Error('Oturum kapandı'); }
+  const r = await fetch(SB_URL + '/rest/v1/' + path, { headers: hdr() });
+  if (r.status === 401) { save(null); showLogin(); throw new Error('Oturum kapandı'); }
+  if (!r.ok) throw new Error('Sunucu hatası: ' + r.status);
+  return r.json();
+};
+const patchRow = async (path, body) => {
+  await fresh();
+  const r = await fetch(SB_URL + '/rest/v1/' + path, { method: 'PATCH', headers: { ...hdr(), Prefer: 'return=minimal' }, body: JSON.stringify(body) });
+  if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.message || ('Sunucu hatası: ' + r.status)); }
+};
+async function signOut() {
+  const t = sess && sess.token;
+  save(null);
+  if (t) { try { await fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + t } }); } catch (e) {} }
+}
+function who() { $('#who').innerHTML = sess ? `<span>${esc(sess.email)}</span><button class="ghost" data-out>Çıkış</button>` : ''; }
+
+/* ---------- giriş ---------- */
+function showLogin() {
+  clearInterval(pnl.timer); who();
+  $('#app').innerHTML = `<div class="wrap"><div class="login card"><h2 class="title">Yönetici girişi</h2><p class="info">Yönetici hesabınla giriş yap.</p>
+<label for="em">E-posta</label><input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
+<label for="pw">Şifre</label><input id="pw" type="password" autocomplete="current-password" autocapitalize="none">
+<p id="aerr" class="err" hidden style="margin:12px 0 0"></p>
+<button class="go" data-login>Giriş yap</button>
+</div></div>`;
+}
+let authBusy = false, authFails = 0, authLock = 0;
+async function doLogin() {
+  if (authBusy) return;
+  const email = $('#em').value.trim().toLowerCase(), password = $('#pw').value, el = $('#aerr'), btn = $('[data-login]');
+  el.hidden = false;
+  if (!email || !password) { el.textContent = 'E-posta ve şifreyi yaz.'; return; }
+  if (Date.now() < authLock) { el.textContent = 'Çok fazla deneme yaptın. ' + Math.ceil((authLock - Date.now()) / 1000) + ' saniye sonra tekrar dene.'; return; }
+  authBusy = true; btn.disabled = true; el.textContent = 'Bekle…';
+  try { save(toSess(await authReq('token?grant_type=password', { email, password }))); authFails = 0; who(); await start(); }
+  catch (e) { if (++authFails >= 5) { authLock = Date.now() + 60000; authFails = 0; } el.hidden = false; el.textContent = authMsg(e.message); }
+  finally { authBusy = false; if ($('[data-login]')) $('[data-login]').disabled = false; }
+}
+
+
+/* ---------- restoran kaydı ---------- */
+let codeEmail = '', resendAt = 0;
+function signupView() {
+  clearInterval(pnl.timer); who();
+  $('#app').innerHTML = `<div class="wrap"><div class="wide card"><h2 class="title">Restoran olarak kayıt ol</h2><p class="info">Önce hesabını oluştur, sonra restoranının bilgilerini gireceksin.</p>
+<label for="sem">E-posta</label><input id="sem" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
+<label for="spw">Şifre (en az 8 karakter, harf ve rakam)</label><input id="spw" type="password" autocomplete="new-password" autocapitalize="none">
+<p id="serr" class="err" hidden style="margin:12px 0 0"></p>
+<button class="go" data-rsignupgo>Kayıt ol</button>
+<button class="sw" data-rlogin>Hesabın var mı? Giriş yap</button></div></div>`;
+  scrollTo(0, 0);
+}
+async function doSignup() {
+  if (authBusy) return;
+  const email = $('#sem').value.trim().toLowerCase(), password = $('#spw').value, el = $('#serr'), btn = $('[data-rsignupgo]');
+  el.hidden = false;
+  if (!email || !password) { el.textContent = 'E-posta ve şifreyi yaz.'; return; }
+  if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) { el.textContent = 'Şifre en az 8 karakter olmalı ve hem harf hem rakam içermeli.'; return; }
+  authBusy = true; btn.disabled = true; el.textContent = 'Bekle…';
+  try {
+    const j = await authReq('signup', { email, password });
+    if (!j.access_token) {
+      if (j.user && Array.isArray(j.user.identities) && !j.user.identities.length) { el.textContent = 'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.'; return; }
+      return codeView(email);
+    }
+    save(toSess(j)); who(); await start();
+  } catch (e) { el.textContent = authMsg(e.message); }
+  finally { authBusy = false; if ($('[data-rsignupgo]')) $('[data-rsignupgo]').disabled = false; }
+}
+function codeView(email, note) {
+  codeEmail = email;
+  $('#app').innerHTML = `<div class="wrap"><div class="wide card"><h2 class="title">E-postanı doğrula</h2>
+<p class="info">${esc(note || 'Hesabını doğrulamak için e-postana bir kod gönderdik.')}</p><p class="info"><b>${esc(email)}</b> adresine gelen kodu yaz. Gelmediyse spam klasörüne de bak.</p>
+<label for="cd">Doğrulama kodu</label><input id="cd" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Örn. 123456">
+<p id="cderr" class="err" hidden style="margin:12px 0 0"></p>
+<button class="go" data-verify>Doğrula</button>
+<button class="sw" data-resend>Kodu tekrar gönder</button></div></div>`;
+  scrollTo(0, 0);
+  const i = $('#cd'); if (i) i.focus();
+}
+async function verifyCode() {
+  if (authBusy) return;
+  const el = $('#cderr'), btn = $('[data-verify]');
+  const token = ($('#cd').value || '').replace(/\s+/g, '');
+  el.hidden = false;
+  if (!/^\d{4,10}$/.test(token)) { el.textContent = 'E-postana gelen kodu rakamlarla yaz.'; return; }
+  authBusy = true; btn.disabled = true; el.textContent = 'Bekle…';
+  try {
+    const j = await authReq('verify', { type: 'signup', email: codeEmail, token });
+    if (!j.access_token) throw new Error('Doğrulama tamamlanamadı. Tekrar dene.');
+    save(toSess(j)); who(); await start();
+  } catch (e) { el.textContent = authMsg(e.message); }
+  finally { authBusy = false; if ($('[data-verify]')) $('[data-verify]').disabled = false; }
+}
+async function resendCode() {
+  const el = $('#cderr'); el.hidden = false;
+  const wait = Math.ceil((resendAt - Date.now()) / 1000);
+  if (wait > 0) { el.textContent = 'Yeni kod için ' + wait + ' saniye bekle.'; return; }
+  el.textContent = 'Gönderiliyor…';
+  try { await authReq('resend', { type: 'signup', email: codeEmail }); resendAt = Date.now() + 60000; el.textContent = 'Yeni kod gönderildi. Gelen kutunu ve spam klasörünü kontrol et.'; }
+  catch (e) { el.textContent = authMsg(e.message); }
+}
+
+let pnl = { tab: 'rest', d: {} };
+const TABS = [['rest', 'Restoranlar'], ['promo', 'Kampanyalar'], ['cour', 'Kuryeler'], ['ord', 'Siparişler'], ['set', 'Ayarlar']];
+const Q = { rest: 'restaurants?select=id,name,city,district,phone,is_active,is_paused,commission_rate&order=is_active.asc,created_at.desc&limit=100', promo: 'coupons?select=id,code,discount_type,discount_value,min_order_amount,expires_at,usage_limit,restaurants(name)&approval_status=eq.pending&order=created_at.desc', cour: 'courier_profiles?select=*&order=created_at.desc', ord: 'orders?select=id,status,total_amount,payment_method,created_at,restaurants(name)&order=created_at.desc&limit=50', set: 'app_settings?select=key,value' };
+async function pch(path, body) {
+  await fresh(); const r = await fetch(SB_URL + '/rest/v1/' + path, { method: 'PATCH', headers: { ...hdr(), Prefer: 'return=representation' }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.message || 'Kaydedilemedi'); if (!Array.isArray(j) || !j.length) throw new Error('Yetkin yok veya kayıt bulunamadı');
+}
+async function start() {
+  $('#app').innerHTML = '<div class="wrap"><p class="info">Yükleniyor…</p></div>';
+  try {
+    const r = await api('profiles?select=role&id=eq.' + encodeURIComponent(sess.uid));
+    if (!r[0] || r[0].role !== 'admin') { $('#app').innerHTML = '<div class="wrap"><div class="wide card"><h2 class="title">Yetkin yok</h2><p class="info">Bu sayfa sadece yöneticiler içindir.</p><button class="ghost" data-out>Çıkış yap</button></div></div>'; return; }
+  } catch (e) { $('#app').innerHTML = `<div class="wrap"><p class="err">${esc(e.message)}</p></div>`; return; }
+  $('#app').innerHTML = '<div class="wrap" id="adm"><h2 class="title">Yönetici paneli</h2><div class="ptabs" id="atabs"></div><div id="abody"></div></div>'; load();
+}
+async function load() {
+  render(true);
+  try { pnl.d[pnl.tab] = await api(Q[pnl.tab]); } catch (e) { pnl.d[pnl.tab] = []; toast(e.message); }
+  render();
+}
+const ST = { pending: '⏳ Onay bekliyor', approved: '✅ Onaylı', suspended: '⏸ Askıda' };
+function render(wait) {
+  const t = $('#atabs'), b = $('#abody'); if (!t || !b) return;
+  t.innerHTML = TABS.map(([k, n]) => `<button data-atab="${k}" class="${pnl.tab === k ? 'on' : ''}">${n}</button>`).join('');
+  const rows = pnl.d[pnl.tab]; if (wait || !rows) { b.innerHTML = '<p class="info">Yükleniyor…</p>'; return; }
+  const tt = pnl.tab, E = '<div class="empty">Kayıt yok.</div>';
+  if (tt === 'rest') b.innerHTML = rows.map(r => `<div class="ocard"><b>${esc(r.name)}</b> <span class="badge">${!r.is_active ? '⏳ Onay bekliyor' : r.is_paused ? '⏸ Sipariş almıyor' : '✅ Açık'}</span><p class="info">${esc(r.city || '')} ${esc(r.district || '')} · ${esc(r.phone || '')}</p><div class="prow"><input id="cm-${esc(r.id)}" type="number" min="0" max="50" step="0.5" value="${esc(r.commission_rate ?? 10)}" style="max-width:90px"><button data-rcom="${esc(r.id)}">Komisyon % kaydet</button>${r.is_active ? `<button class="ghost" data-rcls="${esc(r.id)}">Yayından kaldır</button>` : `<button class="go" data-rapp="${esc(r.id)}">Onayla</button>`}</div></div>`).join('') || E;
+  if (tt === 'promo') b.innerHTML = rows.map(c => `<div class="ocard"><b>${esc(c.code)}</b> <span class="badge">${esc((c.restaurants || {}).name || 'Platform')}</span><p class="info">${c.discount_type === 'yuzde' ? '%' + esc(c.discount_value) : tl(c.discount_value)} · min. ${tl(c.min_order_amount)}${c.usage_limit ? ' · ' + esc(c.usage_limit) + ' kullanım' : ''}${c.expires_at ? ' · ' + esc(new Date(c.expires_at).toLocaleDateString('tr-TR')) + ' tarihine kadar' : ''}</p><div class="prow"><button class="go" data-papp="${esc(c.id)}">Onayla</button><button class="ghost" data-prej="${esc(c.id)}">Reddet</button></div></div>`).join('') || '<div class="empty">Onay bekleyen kampanya yok.</div>';
+  if (tt === 'cour') b.innerHTML = [...rows].sort((a, z) => (a.status === 'pending' ? 0 : 1) - (z.status === 'pending' ? 0 : 1)).map(c => `<div class="ocard"><b>${esc(c.full_name)}</b> <span class="badge">${ST[c.status] || esc(c.status)}</span><p class="info">📞 <a href="tel:${esc(telOf(c.phone))}">${esc(c.phone)}</a></p><div class="prow">${c.status !== 'approved' ? `<button class="go" data-capp="${esc(c.id)}">Onayla</button>` : ''}${c.status !== 'suspended' ? `<button class="ghost" data-csus="${esc(c.id)}">Askıya al</button>` : ''}</div></div>`).join('') || E;
+  if (tt === 'ord') b.innerHTML = rows.map(o => `<div class="pmi"><span><b>${esc((o.restaurants || {}).name || '')}</b><br><span class="info">${esc(new Date(o.created_at).toLocaleString('tr-TR'))} · ${esc(o.payment_method || '')}</span></span><span><b>${tl(o.total_amount)}</b> <span class="badge">${esc(o.status)}</span></span></div>`).join('') || E;
+  if (tt === 'set') { const fee = (rows.find(x => x.key === 'courier_fee') || {}).value || '40'; b.innerHTML = `<div class="mf"><b>Kurye ücreti (₺)</b><p class="hint">Restoranın her kurye isteğinde ödediği sabit ücret. Yeni isteklere uygulanır.</p><div class="prow"><input id="sf" type="number" min="0" step="1" value="${esc(fee)}" style="max-width:120px"><button class="go" data-sfee>Kaydet</button></div></div>`; }
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return; const d = b.dataset;
+  if ('login' in d) return doLogin(); if ('rlogin' in d) return showLogin(); if ('verify' in d) return verifyCode(); if ('resend' in d) return resendCode();
+  if ('out' in d) { signOut(); return showLogin(); }
+  if (d.atab) { pnl.tab = d.atab; return load(); }
+  let job = null, ok = 'Kaydedildi ✓';
+  if (d.rapp) job = () => pch('restaurants?id=eq.' + encodeURIComponent(d.rapp), { is_active: true });
+  if (d.rcls) job = () => pch('restaurants?id=eq.' + encodeURIComponent(d.rcls), { is_active: false });
+  if (d.rcom) { const v = Number(document.getElementById('cm-' + d.rcom).value); if (!isFinite(v) || v < 0 || v > 50) return toast('Komisyon 0 ile 50 arasında olmalı'); job = () => pch('restaurants?id=eq.' + encodeURIComponent(d.rcom), { commission_rate: v }); }
+  if (d.papp) job = () => pch('coupons?id=eq.' + encodeURIComponent(d.papp), { approval_status: 'approved', is_active: true, reject_reason: null });
+  if (d.prej) { const why = prompt('Red nedeni (restoran görecek):'); if (why === null) return; job = () => pch('coupons?id=eq.' + encodeURIComponent(d.prej), { approval_status: 'rejected', is_active: false, reject_reason: why.trim() || 'Uygun bulunmadı' }); }
+  if (d.capp) job = () => pch('courier_profiles?id=eq.' + encodeURIComponent(d.capp), { status: 'approved' });
+  if (d.csus) job = () => pch('courier_profiles?id=eq.' + encodeURIComponent(d.csus), { status: 'suspended' });
+  if ('sfee' in d) { const v = Number(document.getElementById('sf').value); if (!isFinite(v) || v < 0 || v > 1000) return toast('Geçerli bir ücret yaz'); job = () => pch('app_settings?key=eq.courier_fee', { value: String(v) }); }
+  if (job) { try { await job(); toast(ok); await load(); } catch (x) { toast(x.message); } }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.target.id === 'em' || e.target.id === 'pw')) { e.preventDefault(); doLogin(); }
+  if (e.key === 'Enter' && e.target.id === 'cd') { e.preventDefault(); verifyCode(); }
+});
+(async () => { await fresh(); who(); sess ? start() : showLogin(); })();
+</script>
+</body>
+</html>

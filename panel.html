@@ -59,6 +59,10 @@ a{color:var(--red-d)}
 .hint{color:var(--muted);font-size:13px;margin:4px 0 0}
 .wide{max-width:560px;margin:24px auto}
 .wide .go{width:100%;margin-top:18px;padding:15px}
+.big{width:100%;padding:16px;font-size:17px;margin:10px 0}
+.mf{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.pmi{flex-wrap:wrap}.pmi>span:last-child{display:flex;gap:6px;flex-wrap:wrap}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.kpi div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.kpi b{display:block;font-size:19px;margin-top:3px}.kpi span{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -267,10 +271,10 @@ function pendingView(rs) {
 }
 
 /* ---------- panel ---------- */
-const STEPS = [['pending', 'Sipariş alındı'], ['accepted', 'Onaylandı'], ['preparing', 'Hazırlanıyor'], ['out_for_delivery', 'Yolda'], ['delivered', 'Teslim edildi']];
-const NEXT = { pending: [['accepted', 'Onayla'], ['cancelled', 'Reddet']], accepted: [['preparing', 'Hazırlanmaya başla'], ['cancelled', 'İptal et']], preparing: [['out_for_delivery', 'Yola çıktı'], ['cancelled', 'İptal et']], out_for_delivery: [['delivered', 'Teslim edildi']] };
-const PTABS = [['new', 'Yeni'], ['prep', 'Hazırlanıyor'], ['way', 'Yolda'], ['done', 'Bitenler'], ['menu', 'Menü']];
-const pgrp = st => st === 'pending' || st === 'accepted' ? 'new' : st === 'preparing' ? 'prep' : st === 'out_for_delivery' ? 'way' : 'done';
+const STEPS = [['pending', 'Sipariş alındı'], ['accepted', 'Onaylandı'], ['preparing', 'Hazırlanıyor'], ['ready_for_pickup', 'Hazır'], ['out_for_delivery', 'Yolda'], ['delivered', 'Teslim edildi']];
+const NEXT = { pending: [['accepted', 'Onayla'], ['cancelled', 'Reddet']], accepted: [['preparing', 'Hazırlanmaya başla'], ['cancelled', 'İptal et']], preparing: [['ready_for_pickup', 'Hazır'], ['cancelled', 'İptal et']], ready_for_pickup: [['out_for_delivery', 'Yola çıktı'], ['cancelled', 'İptal et']], out_for_delivery: [['delivered', 'Teslim edildi']] };
+const PTABS = [['new', 'Yeni'], ['prep', 'Hazırlanıyor'], ['way', 'Yolda'], ['done', 'Bitenler'], ['menu', 'Menü'], ['earn', 'Kazançlarım'], ['promo', 'Kampanya'], ['courier', 'Kurye']];
+const pgrp = st => st === 'pending' || st === 'accepted' ? 'new' : st === 'preparing' || st === 'ready_for_pickup' ? 'prep' : st === 'out_for_delivery' ? 'way' : 'done';
 let pnl = { rests: [], rid: null, tab: 'new', orders: [], items: {}, menu: null, seen: null, sound: false, ctx: null, timer: null, lastBeep: 0, wake: null };
 const cur = () => pnl.rests.find(r => r.id === pnl.rid);
 
@@ -307,11 +311,11 @@ async function start() {
   pnl.timer = setInterval(() => { if (!$('#pnl')) return clearInterval(pnl.timer); pollPanel(); }, 8000);
 }
 function drawPanel() {
-  const r = cur(), open = r.is_open !== false;
+  const r = cur(), open = r.is_paused !== true;
   $('#app').innerHTML = `<div class="wrap" id="pnl">
 ${pnl.rests.length > 1 ? `<select id="prest">${pnl.rests.map(x => `<option value="${esc(x.id)}" ${x.id === pnl.rid ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` : `<h2 class="title">${esc(r.name)}</h2>`}
-${pnl.sound ? '' : '<button class="soundbar" data-psound>🔕 Yeni sipariş sesi kapalı — açmak için dokun</button>'}
-<div class="prow"><button class="${open ? 'ghost' : 'go'}" data-popen>${open ? '🟢 Açık · kapatmak için dokun' : '🔴 Kapalı · açmak için dokun'}</button>${pnl.sound ? '<button class="ghost" data-psound>🔔 Ses açık</button>' : ''}</div>
+${pnl.sound || !open ? '' : '<button class="soundbar" data-psound>🔕 Yeni sipariş sesi kapalı — açmak için dokun</button>'}
+<div class="prow"><button class="${open ? 'ghost' : 'go'} big" data-popen>${open ? '⏸ Sipariş almayı durdur' : '▶ Sipariş almaya başla'}</button>${pnl.sound ? '<button class="ghost" data-psound>🔔 Ses açık</button>' : ''}</div>
 <div class="ptabs" id="ptabs"></div><div id="pbody"></div></div>`;
 }
 function orderCard(o) {
@@ -325,16 +329,17 @@ function orderCard(o) {
 ${a.phone ? `<p class="info">📞 <a href="tel:${esc(telOf(a.phone))}">${esc(a.phone)}</a></p>` : ''}
 ${a.delivery_instructions ? `<p class="info">📝 ${esc(a.delivery_instructions)}</p>` : ''}
 ${o.coupon_code ? `<p class="info">🏷️ Kupon: ${esc(o.coupon_code)} (−${tl(o.discount_amount || 0)})</p>` : ''}
-${(NEXT[o.status] || []).length ? `<div class="prow">${NEXT[o.status].map(([to, l], i) => `<button class="${i ? 'ghost' : 'go'}" data-pst="${esc(o.id)}" data-to="${to}">${l}</button>`).join('')}</div>` : ''}</div>`;
+${o.prep_minutes ? `<p class="info">⏱️ Hazırlık: ${esc(o.prep_minutes)} dk</p>` : ''}${o.reject_reason ? `<p class="info">❌ ${esc(o.reject_reason)}</p>` : ''}${o.status === 'pending' ? `<select id="pp-${esc(o.id)}"><option value="15">Hazırlık: 15 dk</option><option value="20" selected>Hazırlık: 20 dk</option><option value="30">Hazırlık: 30 dk</option><option value="45">Hazırlık: 45 dk</option><option value="60">Hazırlık: 60 dk</option></select>` : ''}${(NEXT[o.status] || []).length ? `<div class="prow">${NEXT[o.status].map(([to, l], i) => `<button class="${i ? 'ghost' : 'go'}" data-pst="${esc(o.id)}" data-to="${to}">${l}</button>`).join('')}</div>` : ''}</div>`;
 }
-function renderPanel() {
+function renderPanel(keep) {
   const t = $('#ptabs'), b = $('#pbody'); if (!t || !b) return;
   const g = k => pnl.orders.filter(o => pgrp(o.status) === k);
   t.innerHTML = PTABS.map(([k, l]) => `<button data-ptab="${k}" class="${pnl.tab === k ? 'on' : ''}">${l}${k !== 'menu' && k !== 'done' && g(k).length ? ` <i>${g(k).length}</i>` : ''}</button>`).join('');
-  if (pnl.tab === 'menu') {
-    b.innerHTML = pnl.menu === null ? '<p class="info">Menü yükleniyor…</p>' : pnl.menu.length ? pnl.menu.map(m => `<div class="pmi"><span><b>${esc(m.name)}</b><br><span class="info">${tl(m.price)}</span></span><button class="${m.is_available ? '' : 'off'}" data-pitem="${esc(m.id)}">${m.is_available ? 'Satışta' : 'Tükendi'}</button></div>`).join('') : '<div class="empty">Menüde ürün yok.</div>';
-    return;
-  }
+  if (keep && ['menu', 'earn', 'promo', 'courier'].includes(pnl.tab)) return;
+  if (pnl.tab === 'promo') { b.innerHTML = promoHtml(); return; }
+  if (pnl.tab === 'courier') { b.innerHTML = courierHtml(); return; }
+  if (pnl.tab === 'menu') { b.innerHTML = menuHtml(); return; }
+  if (pnl.tab === 'earn') { b.innerHTML = earnHtml(); return; }
   const list = g(pnl.tab).slice(0, pnl.tab === 'done' ? 20 : 60);
   b.innerHTML = list.length ? list.map(orderCard).join('') : '<div class="empty">Bu bölümde sipariş yok.</div>';
 }
@@ -354,36 +359,168 @@ async function pollPanel() {
     if (isNew) { beep(); pnl.lastBeep = Date.now(); toast('🔔 Yeni sipariş geldi!'); }
     else if (pend.size && Date.now() - pnl.lastBeep > 25000) { beep(); pnl.lastBeep = Date.now(); }
     document.title = pend.size ? `(${pend.size}) Yeni sipariş – Akar Yemek` : 'Restoran paneli – Akar Yemek';
-    pnl.seen = pend; pnl.orders = rows; renderPanel();
+    pnl.seen = pend; pnl.orders = rows; renderPanel(true);
   } catch (e) { const b = $('#pbody'); if (b && !pnl.orders.length && sess) b.innerHTML = `<p class="err">Siparişler alınamadı (${esc(e.message)})</p>`; }
 }
 async function setStatus(id, to) {
-  if (to === 'cancelled' && !confirm('Siparişi iptal etmek istiyor musun?')) return;
+  let reason = null, prep = null;
+  if (to === 'cancelled') { reason = prompt('Red / iptal nedeni:'); if (reason === null) return; reason = reason.trim() || 'Belirtilmedi'; }
+  if (to === 'accepted') { const sl = document.getElementById('pp-' + id); prep = sl ? Number(sl.value) : null; }
   try {
     await fresh();
-    const res = await fetch(SB_URL + '/rest/v1/rpc/set_order_status', { method: 'POST', headers: hdr(), body: JSON.stringify({ p_order_id: id, p_status: to }) });
+    const res = await fetch(SB_URL + '/rest/v1/rpc/restaurant_update_order', { method: 'POST', headers: hdr(), body: JSON.stringify({ p_order: id, p_status: to, p_prep: prep, p_reason: reason }) });
     const j = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(j.message || 'Durum değiştirilemedi');
-    const o = pnl.orders.find(x => x.id === id); if (o) o.status = to;
+    const o = pnl.orders.find(x => x.id === id); if (o) { o.status = to; if (prep) o.prep_minutes = prep; if (reason) o.reject_reason = reason; }
     renderPanel(); toast('Güncellendi ✓');
   } catch (e) { toast(e.message); }
 }
 async function toggleOpen() {
-  const r = cur(), nv = r.is_open === false;
-  try { await patchRow('restaurants?id=eq.' + encodeURIComponent(r.id), { is_open: nv }); r.is_open = nv; drawPanel(); renderPanel(); toast(nv ? 'Restoran açıldı' : 'Restoran kapatıldı'); }
-  catch (e) { toast(e.message); }
+  const r = cur(), st = r.is_paused === true;
+  try {
+    await patchRow('restaurants?id=eq.' + encodeURIComponent(r.id), { is_paused: !st }); r.is_paused = !st; r.is_open = !!r.is_active && !r.is_paused;
+    if (st) { pnl.sound = true; try { pnl.ctx = pnl.ctx || new (window.AudioContext || window.webkitAudioContext)(); pnl.ctx.resume(); } catch (e) {} beep(); keepAwake(); } else pnl.sound = false;
+    drawPanel(); renderPanel(); toast(st ? 'Sipariş alma başladı' : 'Sipariş alma durduruldu');
+  } catch (e) { toast(e.message); }
 }
 function toggleSound() {
   pnl.sound = !pnl.sound;
   if (pnl.sound) { try { pnl.ctx = pnl.ctx || new (window.AudioContext || window.webkitAudioContext)(); pnl.ctx.resume(); } catch (e) {} beep(); keepAwake(); }
   drawPanel(); renderPanel();
 }
+async function loadMenu() {
+  const q = encodeURIComponent(pnl.rid);
+  try { [pnl.menu, pnl.cats] = await Promise.all([api('menu_items?select=id,name,description,price,image_url,category_id,is_available&restaurant_id=eq.' + q + '&order=name'), api('menu_categories?select=id,name&restaurant_id=eq.' + q + '&order=sort_order,name')]); }
+  catch (e) { pnl.menu = []; pnl.cats = []; toast(e.message); }
+}
 async function setTab(k) {
   pnl.tab = k; renderPanel();
-  if (k === 'menu' && pnl.menu === null) {
-    try { pnl.menu = await api('menu_items?select=id,name,price,is_available&restaurant_id=eq.' + encodeURIComponent(pnl.rid) + '&order=name'); } catch (e) { pnl.menu = []; toast(e.message); }
-    renderPanel();
-  }
+  if (k === 'menu' && pnl.menu === null) { await loadMenu(); renderPanel(); }
+  if (k === 'earn') loadEarn();
+  if (k === 'courier') { pnl.creqs = null; await loadCreqs(); renderPanel(); }
+  if (k === 'promo') { pnl.promos = null; await loadPromos(); renderPanel(); }
+}
+function menuHtml() {
+  if (pnl.menu === null) return '<p class="info">Menü yükleniyor…</p>';
+  const cats = pnl.cats || [], cn = id => (cats.find(c => c.id === id) || {}).name || 'Kategorisiz';
+  const form = `<div class="mf"><b id="mft">Yeni ürün ekle</b><input type="hidden" id="mid">
+<label for="mn">Ürün adı</label><input id="mn" maxlength="80">
+<label for="md">Açıklama</label><input id="md" maxlength="200">
+<div class="two"><div><label for="mp">Fiyat (₺)</label><input id="mp" inputmode="decimal"></div><div><label for="mc">Kategori</label><select id="mc"><option value="">Kategorisiz</option>${cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select></div></div>
+<label for="mi">Fotoğraf bağlantısı (isteğe bağlı)</label><input id="mi" type="url" placeholder="https://..." autocapitalize="none">
+<div class="prow"><button class="go" data-msave>Kaydet</button><button class="ghost" data-mclear>Temizle</button></div></div>
+<div class="mf"><b>Kategori ekle</b><div class="prow"><input id="cn" maxlength="40" placeholder="Burger, Pizza, Döner…" style="flex:2"><button class="go" data-cadd>Ekle</button></div></div>`;
+  const items = pnl.menu.length ? pnl.menu.map(m => `<div class="pmi"><span><b>${esc(m.name)}</b><br><span class="info">${tl(m.price)} · ${esc(cn(m.category_id))}</span></span><span><button data-medit="${esc(m.id)}">Düzenle</button><button class="${m.is_available ? '' : 'off'}" data-pitem="${esc(m.id)}">${m.is_available ? 'Satışta' : 'Tükendi'}</button><button data-mdel="${esc(m.id)}">Sil</button></span></div>`).join('') : '<div class="empty">Menüde ürün yok.</div>';
+  return form + items;
+}
+async function saveItem() {
+  const v = id => ($('#' + id).value || '').trim(), name = v('mn'), price = Number(v('mp').replace(',', '.')), img = v('mi'), id = v('mid');
+  if (name.length < 2) return toast('Ürün adını yaz');
+  if (!isFinite(price) || price <= 0 || price > 100000) return toast('Geçerli bir fiyat yaz');
+  if (img && !/^https:\/\//i.test(img)) return toast('Fotoğraf bağlantısı https:// ile başlamalı');
+  const row = { name, description: v('md') || null, price, image_url: img || null, category_id: v('mc') || null };
+  try {
+    if (id) await patchRow('menu_items?id=eq.' + encodeURIComponent(id), row); else await postRow('menu_items', { ...row, restaurant_id: pnl.rid, is_available: true });
+    await loadMenu(); renderPanel(); toast('Kaydedildi ✓');
+  } catch (e) { toast(e.message); }
+}
+function editItem(id) {
+  const m = (pnl.menu || []).find(x => x.id === id); if (!m) return;
+  $('#mid').value = m.id; $('#mn').value = m.name; $('#md').value = m.description || ''; $('#mp').value = m.price; $('#mc').value = m.category_id || ''; $('#mi').value = m.image_url || ''; $('#mft').textContent = 'Ürünü düzenle'; scrollTo(0, 0);
+}
+async function delItem(id) {
+  if (!confirm('Ürün silinsin mi?')) return;
+  try {
+    await fresh(); const r = await fetch(SB_URL + '/rest/v1/menu_items?id=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: hdr() });
+    if (!r.ok) throw new Error('Silinemedi. Siparişlerde kullanılmış olabilir, "Tükendi" yap.');
+    await loadMenu(); renderPanel(); toast('Silindi');
+  } catch (e) { toast(e.message); }
+}
+async function addCat() {
+  const n = ($('#cn').value || '').trim(); if (n.length < 2) return toast('Kategori adını yaz');
+  try { await postRow('menu_categories', { restaurant_id: pnl.rid, name: n, sort_order: (pnl.cats || []).length }); await loadMenu(); renderPanel(); toast('Kategori eklendi'); } catch (e) { toast(e.message); }
+}
+const CST = { open: '🔎 Kurye aranıyor', assigned: '🛵 Kurye restorana geliyor', picked_up: '📦 Teslimata çıktı', delivered: '✅ Teslim edildi', cancelled: '❌ İptal' };
+async function loadCreqs() {
+  const q = encodeURIComponent(pnl.rid);
+  try {
+    const [rows, fee] = await Promise.all([api('courier_requests?select=*,courier_profiles(full_name,phone)&restaurant_id=eq.' + q + '&order=created_at.desc&limit=30'), api('app_settings?select=value&key=eq.courier_fee')]);
+    pnl.creqs = rows; pnl.cfee = Number((fee[0] || {}).value) || 40;
+  } catch (e) { pnl.creqs = []; toast(e.message); }
+}
+function courierHtml() {
+  const fee = pnl.cfee || 40;
+  const form = `<div class="mf"><b>Kurye çağır</b><p class="hint">Telefonla aldığın siparişi müşteriye ulaştırmak için sistemdeki kuryelerden destek iste. Kurye ücreti sabit ${tl(fee)}, sana yansıtılır.</p>
+<label for="kn">Müşteri adı (isteğe bağlı)</label><input id="kn" maxlength="60">
+<label for="kp">Müşteri telefonu</label><input id="kp" type="tel" inputmode="tel" maxlength="20">
+<label for="ka">Teslimat adresi</label><input id="ka" maxlength="250">
+<div class="two"><div><label for="kc">Kapıda tahsil (₺)</label><input id="kc" inputmode="decimal" value="0"></div><div><label for="kt">Not</label><input id="kt" maxlength="120"></div></div>
+<button class="go big" data-kreq>Kurye çağır · ${tl(fee)}</button></div><div class="prow"><button class="ghost" data-kref>Yenile</button></div>`;
+  const list = pnl.creqs === null ? '<p class="info">Yükleniyor…</p>' : pnl.creqs.length ? pnl.creqs.map(c => `<div class="ocard"><b>${esc(c.customer_name || 'Müşteri')}</b> <span class="badge">${CST[c.status] || esc(c.status)}</span><p class="info">📍 ${esc(c.address)}<br>📞 ${esc(c.customer_phone)} · ${esc(new Date(c.created_at).toLocaleString('tr-TR'))}${Number(c.collect_amount) ? '<br>💵 Kapıda tahsil: ' + tl(c.collect_amount) : ''}</p>${c.courier_profiles ? `<p class="info">🛵 ${esc(c.courier_profiles.full_name)} · <a href="tel:${esc(telOf(c.courier_profiles.phone))}">${esc(c.courier_profiles.phone)}</a></p>` : ''}${c.status === 'open' ? `<button class="ghost" data-kcancel="${esc(c.id)}">İptal et</button>` : ''}</div>`).join('') : '<div class="empty">Henüz kurye isteğin yok.</div>';
+  return form + list;
+}
+async function courierRpc(fn, body, ok) {
+  try {
+    await fresh(); const res = await fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: hdr(), body: JSON.stringify(body) });
+    const j = await res.json().catch(() => ({})); if (!res.ok) throw new Error(j.message || 'İşlem başarısız');
+    await loadCreqs(); renderPanel(); toast(ok);
+  } catch (e) { toast(e.message); }
+}
+function requestCourier() {
+  const v = id => ($('#' + id).value || '').trim(), phone = v('kp'), addr = v('ka'), col = Number(v('kc').replace(',', '.') || 0);
+  if (!/^[\d\s+()-]{7,20}$/.test(phone)) return toast('Geçerli bir telefon yaz');
+  if (addr.length < 8) return toast('Adresi tam yaz');
+  if (!isFinite(col) || col < 0 || col > 20000) return toast('Tahsilat tutarını kontrol et');
+  if (!confirm('Kurye çağrılsın mı? Ücret: ' + tl(pnl.cfee || 40))) return;
+  courierRpc('request_courier', { p_restaurant: pnl.rid, p_name: v('kn') || null, p_phone: phone, p_address: addr, p_note: v('kt') || null, p_collect: col }, 'Kurye isteği gönderildi ✓');
+}
+async function loadPromos() {
+  try { pnl.promos = await api('coupons?select=id,code,discount_type,discount_value,min_order_amount,expires_at,usage_limit,used_count,is_active,approval_status,reject_reason&restaurant_id=eq.' + encodeURIComponent(pnl.rid) + '&order=created_at.desc'); }
+  catch (e) { pnl.promos = []; toast(e.message); }
+}
+function promoHtml() {
+  const L = c => c.approval_status === 'pending' ? '⏳ Onay bekliyor' : c.approval_status === 'rejected' ? '❌ Reddedildi' + (c.reject_reason ? ': ' + esc(c.reject_reason) : '') : c.is_active ? '✅ Yayında' : '⏸ Pasif';
+  const list = pnl.promos === null ? '<p class="info">Yükleniyor…</p>' : pnl.promos.length ? pnl.promos.map(c => `<div class="pmi"><span><b>${esc(c.code)}</b> · ${c.discount_type === 'yuzde' ? '%' + esc(c.discount_value) : tl(c.discount_value)}<br><span class="info">${L(c)} · min. ${tl(c.min_order_amount)} · ${esc(c.used_count || 0)}${c.usage_limit ? '/' + esc(c.usage_limit) : ''} kullanım${c.expires_at ? ' · ' + esc(new Date(c.expires_at).toLocaleDateString('tr-TR')) + ' tarihine kadar' : ''}</span></span><span><button data-cdel="${esc(c.id)}">Sil</button></span></div>`).join('') : '<div class="empty">Henüz kampanyan yok.</div>';
+  return `<div class="mf"><b>Kampanya öner</b><p class="hint">Kampanyan Akar Yemek onayından sonra yayına girer. İndirim senin kazancından düşer.</p>
+<div class="two"><div><label for="pc">Kupon kodu</label><input id="pc" maxlength="20" autocapitalize="characters" placeholder="BAHAR10"></div><div><label for="pt">Tür</label><select id="pt"><option value="yuzde">Yüzde (%)</option><option value="sabit">Sabit tutar (₺)</option></select></div></div>
+<div class="two"><div><label for="pv">İndirim miktarı</label><input id="pv" inputmode="decimal"></div><div><label for="pm">Min. sepet (₺)</label><input id="pm" inputmode="decimal" value="0"></div></div>
+<div class="two"><div><label for="pe">Son gün (isteğe bağlı)</label><input id="pe" type="date"></div><div><label for="pl">Kullanım sınırı</label><input id="pl" inputmode="numeric" placeholder="Sınırsız"></div></div>
+<button class="go big" data-cprop>Onaya gönder</button></div>` + list;
+}
+async function proposeCoupon() {
+  const v = id => ($('#' + id).value || '').trim(), code = v('pc').toUpperCase(), type = v('pt'), val = Number(v('pv').replace(',', '.')), min = Number(v('pm').replace(',', '.') || 0), lim = v('pl') ? parseInt(v('pl'), 10) : null;
+  if (!/^[A-Z0-9]{4,20}$/.test(code)) return toast('Kod 4-20 harf/rakam olmalı');
+  if (!isFinite(val) || val <= 0 || (type === 'yuzde' && val > 50)) return toast(type === 'yuzde' ? 'Yüzde 1 ile 50 arasında olmalı' : 'Geçerli bir tutar yaz');
+  if (!isFinite(min) || min < 0 || (lim !== null && !(lim > 0))) return toast('Min. sepet ve sınırı kontrol et');
+  const exp = v('pe') ? new Date(v('pe') + 'T23:59:59+03:00').toISOString() : null;
+  try {
+    await fresh(); const res = await fetch(SB_URL + '/rest/v1/rpc/restaurant_propose_coupon', { method: 'POST', headers: hdr(), body: JSON.stringify({ p_restaurant: pnl.rid, p_code: code, p_type: type, p_value: val, p_min: min, p_expires: exp, p_limit: lim }) });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(/duplicate|unique/i.test(j.message || '') ? 'Bu kupon kodu kullanılıyor' : (j.message || 'Gönderilemedi'));
+    await loadPromos(); renderPanel(); toast('Onaya gönderildi ✓');
+  } catch (e) { toast(e.message); }
+}
+async function delPromo(id) {
+  if (!confirm('Kampanya silinsin mi?')) return;
+  try { await fresh(); const r = await fetch(SB_URL + '/rest/v1/coupons?id=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: hdr() }); if (!r.ok) throw new Error('Silinemedi'); await loadPromos(); renderPanel(); toast('Silindi'); } catch (e) { toast(e.message); }
+}
+const ymd = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+function earnHtml() {
+  const t = ymd(new Date()), w = ymd(new Date(Date.now() - 6 * 864e5)), m = ymd(new Date(Date.now() - 29 * 864e5));
+  return `<div class="mf"><b>Kazançlarım</b><div class="prow"><button class="ghost" data-erange="${t}|${t}">Bugün</button><button class="ghost" data-erange="${w}|${t}">7 gün</button><button class="ghost" data-erange="${m}|${t}">30 gün</button></div>
+<div class="two"><div><label for="ef">Başlangıç</label><input id="ef" type="date" value="${w}"></div><div><label for="et">Bitiş</label><input id="et" type="date" value="${t}"></div></div>
+<div class="prow"><button class="go" data-ego>Göster</button></div></div><div id="ebody"></div>`;
+}
+async function loadEarn() {
+  const f = $('#ef') && $('#ef').value, t = $('#et') && $('#et').value; if (!f || !t || f > t) return toast('Tarih aralığını kontrol et');
+  $('#ebody').innerHTML = '<p class="info">Hesaplanıyor…</p>';
+  try {
+    await fresh(); const res = await fetch(SB_URL + '/rest/v1/rpc/restaurant_earnings', { method: 'POST', headers: hdr(), body: JSON.stringify({ p_restaurant: pnl.rid, p_from: f, p_to: t }) });
+    const j = await res.json(); if (!res.ok) throw new Error(j.message || 'Hesaplanamadı');
+    let cf = 0; try { const r2 = await fetch(SB_URL + '/rest/v1/rpc/restaurant_courier_fees', { method: 'POST', headers: hdr(), body: JSON.stringify({ p_restaurant: pnl.rid, p_from: f, p_to: t }) }); if (r2.ok) cf = Number(await r2.json()) || 0; } catch (e) {}
+    const n = Number(j.delivered_count) || 0, k = (a, b, c) => `<div><span>${a}</span><b${c ? ` style="color:var(--green)"` : ''}>${b}</b></div>`;
+    $('#ebody').innerHTML = `<div class="kpi">${k('Ciro (yemek tutarı)', tl(j.gross))}${k('Net kazancın', tl(j.net - cf), 1)}${k('Platform komisyonu (%' + esc(j.rate) + ')', tl(j.commission))}${k('Kendi kupon indirimin', tl(j.discount))}${k('Kurye ücretleri', tl(cf))}${k('Teslim edilen', n)}${k('İptal edilen', esc(j.cancelled_count))}${k('Ortalama sepet', tl(n ? j.gross / n : 0))}</div>` + ((j.top_items || []).length ? `<div class="mf"><b>En çok satanlar</b>${j.top_items.map(x => `<div class="pmi"><span>${esc(x.name)}</span><b>${esc(x.qty)} adet · ${tl(x.total)}</b></div>`).join('')}</div>` : '');
+  } catch (e) { $('#ebody').innerHTML = `<p class="err">${esc(e.message)}</p>`; }
 }
 async function toggleItem(id) {
   const m = (pnl.menu || []).find(x => x.id === id); if (!m) return;
@@ -408,6 +545,8 @@ document.addEventListener('click', e => {
   if (d.pst) return setStatus(d.pst, d.to);
   if (d.ptab) return setTab(d.ptab);
   if (d.pitem) return toggleItem(d.pitem);
+  if ('msave' in d) return saveItem(); if ('mclear' in d) return renderPanel(); if (d.medit) return editItem(d.medit); if (d.mdel) return delItem(d.mdel); if ('cadd' in d) return addCat(); if ('ego' in d) return loadEarn(); if ('cprop' in d) return proposeCoupon(); if ('kreq' in d) return requestCourier(); if ('kref' in d) return setTab('courier'); if (d.kcancel) return confirm('İstek iptal edilsin mi?') && courierRpc('cancel_courier_request', { p_id: d.kcancel }, 'İptal edildi'); if (d.cdel) return delPromo(d.cdel);
+  if (d.erange) { const [a, z] = d.erange.split('|'); $('#ef').value = a; $('#et').value = z; return loadEarn(); }
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'prest') { pnl.rid = e.target.value; pnl.seen = null; pnl.items = {}; pnl.orders = []; pnl.menu = null; pnl.tab = 'new'; drawPanel(); renderPanel(); pollPanel(); }
