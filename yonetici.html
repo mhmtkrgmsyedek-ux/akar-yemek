@@ -63,6 +63,16 @@ a{color:var(--red-d)}
 .mf{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
 .pmi{flex-wrap:wrap}.pmi>span:last-child{display:flex;gap:6px;flex-wrap:wrap}
 .kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.kpi div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.kpi b{display:block;font-size:19px;margin-top:3px}.kpi span{font-size:12px;color:var(--muted)}
+.prow input,.prow select{flex:1;min-width:110px}.ocard>input{margin-bottom:6px}#msel,#per{margin:6px 0 12px}
+.ocard.on{border-color:#2fa36b;background:#f3fbf6}.ocard.offc{border-color:#e53d32;background:#fff3f1}.badge.bad{background:#fddcd8;color:#8c1d16}.gr{background:var(--green);color:#fff;border-radius:12px;padding:12px 16px;font-weight:800}.rd{border:1px solid var(--err);color:var(--err);background:#fff;border-radius:12px;padding:10px 14px;font-weight:700}
+body{background:linear-gradient(#fff4f1,#faf7f4 280px) fixed}
+.bar{box-shadow:0 2px 16px #0000000d}
+.ocard,.mf,.kpi div,.card{border-color:#f1e7e1;box-shadow:0 1px 2px #00000008,0 10px 26px -16px #00000030}
+.kpi{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.kpi div{padding:15px 16px;border-radius:16px}.kpi b{font-size:24px;letter-spacing:-.6px}.kpi span{text-transform:uppercase;letter-spacing:.4px;font-size:11px;font-weight:700}
+.go{box-shadow:0 8px 16px -8px #e53d32bb}.go:hover{background:var(--red-d)}
+.ghost,.ptabs button{border-radius:12px}.ptabs button.on{box-shadow:0 8px 16px -8px #e53d32bb}
+.pmi{padding:13px 4px}h3{font-size:15px;letter-spacing:-.2px}
+@media(min-width:1000px){#adm{max-width:1240px;display:grid;grid-template-columns:232px minmax(0,1fr);column-gap:28px;align-items:start}#adm>.title{grid-column:1/-1}#atabs{flex-direction:column;position:sticky;top:78px;overflow:visible;margin:0;background:#fff;border:1px solid #f1e7e1;border-radius:18px;padding:10px;box-shadow:0 10px 26px -16px #00000030}#atabs button{text-align:left;border:0;padding:11px 14px;font-weight:700}#atabs button:hover{background:#fff1ef}#atabs button.on{background:var(--red);color:#fff}}
 </style>
 </head>
 <body>
@@ -116,7 +126,7 @@ const api = async path => {
   if (!sess) { showLogin(); throw new Error('Oturum kapandı'); }
   const r = await fetch(SB_URL + '/rest/v1/' + path, { headers: hdr() });
   if (r.status === 401) { save(null); showLogin(); throw new Error('Oturum kapandı'); }
-  if (!r.ok) throw new Error('Sunucu hatası: ' + r.status);
+  if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error('Sunucu hatası ' + r.status + ': ' + (j.message || j.hint || path.split('?')[0])); }
   return r.json();
 };
 const patchRow = async (path, body) => {
@@ -155,76 +165,15 @@ async function doLogin() {
 }
 
 
-/* ---------- restoran kaydı ---------- */
-let codeEmail = '', resendAt = 0;
-function signupView() {
-  clearInterval(pnl.timer); who();
-  $('#app').innerHTML = `<div class="wrap"><div class="wide card"><h2 class="title">Restoran olarak kayıt ol</h2><p class="info">Önce hesabını oluştur, sonra restoranının bilgilerini gireceksin.</p>
-<label for="sem">E-posta</label><input id="sem" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
-<label for="spw">Şifre (en az 8 karakter, harf ve rakam)</label><input id="spw" type="password" autocomplete="new-password" autocapitalize="none">
-<p id="serr" class="err" hidden style="margin:12px 0 0"></p>
-<button class="go" data-rsignupgo>Kayıt ol</button>
-<button class="sw" data-rlogin>Hesabın var mı? Giriş yap</button></div></div>`;
-  scrollTo(0, 0);
+let pnl = { tab: 'dash', d: {}, sel: null };
+const TABS = [['dash', 'Özet'], ['calls', 'Çağrılar'], ['rest', 'Restoranlar'], ['menu', 'Menüler'], ['promo', 'Kampanyalar'], ['cour', 'Kuryeler'], ['cfee', 'Kurye ücretleri'], ['cari', 'Cari'], ['ord', 'Siparişler'], ['earn', 'Kazanç'], ['cat', 'Mutfaklar'], ['rev', 'Yorumlar'], ['usr', 'Kullanıcılar'], ['log', 'İşlem kaydı'], ['set', 'Ayarlar']];
+const TBL = ['restaurants', 'menu_items', 'coupons', 'courier_profiles', 'orders', 'app_settings', 'cuisines', 'reviews', 'profiles'];
+const Q = { rest: 'restaurants?select=*&order=is_active.asc,created_at.desc&limit=200', promo: 'coupons?select=id,code,discount_type,discount_value,min_order_amount,expires_at,usage_limit,approval_status,is_active,restaurants(name)&order=created_at.desc&limit=200', cour: 'courier_profiles?select=*&order=created_at.desc', cfee: 'app_settings?select=key,value', ord: 'orders?select=id,status,total_amount,payment_method,created_at,restaurant_id&order=created_at.desc&limit=100', set: 'app_settings?select=key,value&order=key.asc', cat: 'cuisines?select=*&order=sort_order', rev: 'reviews?select=id,rating,comment,created_at,restaurant_id&order=created_at.desc&limit=100', usr: 'profiles?select=*&limit=200', earn: () => { const P = periodOf(Number(pnl.per || 0)); return 'orders?select=*&created_at=gte.' + encodeURIComponent(P.s.toISOString()) + '&created_at=lt.' + encodeURIComponent(P.e.toISOString()) + '&order=created_at.desc&limit=1000'; } };
+async function mut(m, path, body, pref) {
+  await fresh(); const r = await fetch(SB_URL + '/rest/v1/' + path, { method: m, headers: { ...hdr(), Prefer: 'return=representation' + (pref || '') }, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.message || 'İşlem başarısız'); if (!Array.isArray(j) || !j.length) throw new Error('Yetkin yok veya kayıt bulunamadı');
 }
-async function doSignup() {
-  if (authBusy) return;
-  const email = $('#sem').value.trim().toLowerCase(), password = $('#spw').value, el = $('#serr'), btn = $('[data-rsignupgo]');
-  el.hidden = false;
-  if (!email || !password) { el.textContent = 'E-posta ve şifreyi yaz.'; return; }
-  if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) { el.textContent = 'Şifre en az 8 karakter olmalı ve hem harf hem rakam içermeli.'; return; }
-  authBusy = true; btn.disabled = true; el.textContent = 'Bekle…';
-  try {
-    const j = await authReq('signup', { email, password });
-    if (!j.access_token) {
-      if (j.user && Array.isArray(j.user.identities) && !j.user.identities.length) { el.textContent = 'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.'; return; }
-      return codeView(email);
-    }
-    save(toSess(j)); who(); await start();
-  } catch (e) { el.textContent = authMsg(e.message); }
-  finally { authBusy = false; if ($('[data-rsignupgo]')) $('[data-rsignupgo]').disabled = false; }
-}
-function codeView(email, note) {
-  codeEmail = email;
-  $('#app').innerHTML = `<div class="wrap"><div class="wide card"><h2 class="title">E-postanı doğrula</h2>
-<p class="info">${esc(note || 'Hesabını doğrulamak için e-postana bir kod gönderdik.')}</p><p class="info"><b>${esc(email)}</b> adresine gelen kodu yaz. Gelmediyse spam klasörüne de bak.</p>
-<label for="cd">Doğrulama kodu</label><input id="cd" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Örn. 123456">
-<p id="cderr" class="err" hidden style="margin:12px 0 0"></p>
-<button class="go" data-verify>Doğrula</button>
-<button class="sw" data-resend>Kodu tekrar gönder</button></div></div>`;
-  scrollTo(0, 0);
-  const i = $('#cd'); if (i) i.focus();
-}
-async function verifyCode() {
-  if (authBusy) return;
-  const el = $('#cderr'), btn = $('[data-verify]');
-  const token = ($('#cd').value || '').replace(/\s+/g, '');
-  el.hidden = false;
-  if (!/^\d{4,10}$/.test(token)) { el.textContent = 'E-postana gelen kodu rakamlarla yaz.'; return; }
-  authBusy = true; btn.disabled = true; el.textContent = 'Bekle…';
-  try {
-    const j = await authReq('verify', { type: 'signup', email: codeEmail, token });
-    if (!j.access_token) throw new Error('Doğrulama tamamlanamadı. Tekrar dene.');
-    save(toSess(j)); who(); await start();
-  } catch (e) { el.textContent = authMsg(e.message); }
-  finally { authBusy = false; if ($('[data-verify]')) $('[data-verify]').disabled = false; }
-}
-async function resendCode() {
-  const el = $('#cderr'); el.hidden = false;
-  const wait = Math.ceil((resendAt - Date.now()) / 1000);
-  if (wait > 0) { el.textContent = 'Yeni kod için ' + wait + ' saniye bekle.'; return; }
-  el.textContent = 'Gönderiliyor…';
-  try { await authReq('resend', { type: 'signup', email: codeEmail }); resendAt = Date.now() + 60000; el.textContent = 'Yeni kod gönderildi. Gelen kutunu ve spam klasörünü kontrol et.'; }
-  catch (e) { el.textContent = authMsg(e.message); }
-}
-
-let pnl = { tab: 'rest', d: {} };
-const TABS = [['rest', 'Restoranlar'], ['promo', 'Kampanyalar'], ['cour', 'Kuryeler'], ['ord', 'Siparişler'], ['set', 'Ayarlar']];
-const Q = { rest: 'restaurants?select=id,name,city,district,phone,is_active,is_paused,commission_rate&order=is_active.asc,created_at.desc&limit=100', promo: 'coupons?select=id,code,discount_type,discount_value,min_order_amount,expires_at,usage_limit,restaurants(name)&approval_status=eq.pending&order=created_at.desc', cour: 'courier_profiles?select=*&order=created_at.desc', ord: 'orders?select=id,status,total_amount,payment_method,created_at,restaurants(name)&order=created_at.desc&limit=50', set: 'app_settings?select=key,value' };
-async function pch(path, body) {
-  await fresh(); const r = await fetch(SB_URL + '/rest/v1/' + path, { method: 'PATCH', headers: { ...hdr(), Prefer: 'return=representation' }, body: JSON.stringify(body) });
-  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.message || 'Kaydedilemedi'); if (!Array.isArray(j) || !j.length) throw new Error('Yetkin yok veya kayıt bulunamadı');
-}
+const pch = (p, b) => mut('PATCH', p, b);
 async function start() {
   $('#app').innerHTML = '<div class="wrap"><p class="info">Yükleniyor…</p></div>';
   try {
@@ -233,42 +182,152 @@ async function start() {
   } catch (e) { $('#app').innerHTML = `<div class="wrap"><p class="err">${esc(e.message)}</p></div>`; return; }
   $('#app').innerHTML = '<div class="wrap" id="adm"><h2 class="title">Yönetici paneli</h2><div class="ptabs" id="atabs"></div><div id="abody"></div></div>'; load();
 }
-async function load() {
-  render(true);
-  try { pnl.d[pnl.tab] = await api(Q[pnl.tab]); } catch (e) { pnl.d[pnl.tab] = []; toast(e.message); }
-  render();
+const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+function periodOf(per) { const n = new Date(); let y = n.getFullYear(), m = n.getMonth(), h = n.getDate() <= 15 ? 0 : 1; for (let i = 0; i < per; i++) { if (h) h = 0; else { h = 1; if (--m < 0) { m = 11; y--; } } } const last = new Date(y, m, h ? new Date(y, m + 1, 0).getDate() : 15); return { s: new Date(y, m, h ? 16 : 1), last, e: new Date(y, m, last.getDate() + 1) }; }
+function csv(name, rows) { const t = rows.map(r => r.map(v => { let x = typeof v === 'number' ? String(Math.round(v * 100) / 100).replace('.', ',') : String(v ?? ''); if (typeof v === 'string' && /^[=+@-]/.test(x)) x = "'" + x; return '"' + x.replace(/"/g, '""') + '"'; }).join(';')).join('\r\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + t], { type: 'text/csv;charset=utf-8' })); a.download = name + '.csv'; document.body.appendChild(a); a.click(); a.remove(); }
+const ymNow = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+Object.assign(Q, {
+  calls: 'courier_requests?select=id,status,address,collect_amount,fee,created_at,accepted_at,picked_up_at,restaurants(name),courier_profiles(full_name)&order=created_at.desc&limit=100',
+  couriers: 'courier_profiles?select=id,full_name,is_online&status=eq.approved&order=full_name',
+  perf: 'courier_requests?select=courier_id,accepted_at,delivered_at&status=eq.delivered&order=delivered_at.desc&limit=500',
+  active: 'courier_requests?select=courier_id&status=in.(assigned,picked_up)',
+  rnames: 'restaurants?select=id,name&limit=300',
+  cari: () => { const [y, m] = (pnl.month || ymNow()).split('-').map(Number); return 'courier_requests?select=restaurant_id,fee&status=eq.delivered&delivered_at=gte.' + new Date(y, m - 1, 1).toISOString() + '&delivered_at=lt.' + new Date(y, m, 1).toISOString() + '&limit=1000'; }
+});
+const X = { calls: ['couriers'], cour: ['perf', 'active'], cari: ['rnames'] };
+const qf = k => typeof Q[k] === 'function' ? Q[k]() : Q[k];
+const enc = encodeURIComponent;
+Q.log = 'audit_log?select=*&order=created_at.desc&limit=100';
+let polling = false;
+function startPoll() {
+  if (polling) return; polling = true;
+  setInterval(async () => {
+    if (pnl.tab !== 'calls' || !$('#abody') || (document.activeElement && document.activeElement.tagName === 'SELECT')) return;
+    try { pnl.d.calls = await api(qf('calls')); pnl.d.couriers = await api(qf('couriers')); render(); } catch (e) {}
+  }, 15000);
 }
-const ST = { pending: '⏳ Onay bekliyor', approved: '✅ Onaylı', suspended: '⏸ Askıda' };
+const ageMin = t => t ? Math.floor((Date.now() - new Date(t).getTime()) / 60000) : 0;
+const CLIM = { open: 10, assigned: 20, picked_up: 40 };
+const CNAME = { open: '🔎 Bekliyor', assigned: '🛵 Kabul edildi', picked_up: '📦 Yolda', delivered: '✅ Teslim', cancelled: '❌ İptal' };
+function callsHtml() {
+  const rows = pnl.d.calls || [], cs = pnl.d.couriers || [], A = ['open', 'assigned', 'picked_up'];
+  const act = rows.filter(r => A.includes(r.status)).sort((a, z) => new Date(a.created_at) - new Date(z.created_at));
+  const done = rows.filter(r => !A.includes(r.status)).slice(0, 15), cnt = s => rows.filter(r => r.status === s).length;
+  const since = r => r.status === 'open' ? r.created_at : r.status === 'assigned' ? (r.accepted_at || r.created_at) : (r.picked_up_at || r.accepted_at || r.created_at);
+  const card = r => {
+    const m = A.includes(r.status) ? ageMin(since(r)) : 0, late = m > (CLIM[r.status] || 9999);
+    return `<div class="ocard"${late ? ' style="border-color:#c0392b;background:#fdecea"' : ''}><b>${esc((r.restaurants || {}).name || 'Restoran')}</b> <span class="badge">${CNAME[r.status] || esc(r.status)}</span>${late ? ` <b style="color:#c0392b">⚠️ ${m} dk</b>` : m ? ` <span class="info">${m} dk</span>` : ''}
+<p class="info">📍 ${esc(r.address)} · ücret ${tl(r.fee)}${Number(r.collect_amount) ? ' · tahsil ' + tl(r.collect_amount) : ''}</p>${r.courier_profiles ? `<p class="info">🛵 ${esc(r.courier_profiles.full_name)}</p>` : ''}
+${r.status === 'open' || r.status === 'assigned' ? `<div class="prow"><select id="as-${esc(r.id)}">${cs.map(c => `<option value="${esc(c.id)}">${esc(c.full_name)}${c.is_online ? '' : ' (çevrimdışı)'}</option>`).join('')}</select><button class="go" data-asg="${esc(r.id)}">${r.status === 'open' ? 'Ata' : 'Başkasına ata'}</button>${r.status === 'assigned' ? `<button class="ghost" data-rel="${esc(r.id)}">Boşa al</button>` : ''}<button class="ghost" data-rcan="${esc(r.id)}">İptal</button></div>` : ''}</div>`;
+  };
+  return `<div class="kpi"><div><span>Bekleyen</span><b>${cnt('open')}</b></div><div><span>Kabul edilen</span><b>${cnt('assigned')}</b></div><div><span>Yolda</span><b>${cnt('picked_up')}</b></div><div><span>Teslim (listedeki)</span><b>${cnt('delivered')}</b></div></div><div class="prow"><button class="ghost" data-cref>Yenile</button></div>` + (act.length ? act.map(card).join('') : '<div class="empty">Aktif çağrı yok.</div>') + (done.length ? '<h3 class="info" style="margin:14px 0 4px">Son biten çağrılar</h3>' + done.map(card).join('') : '');
+}
+function cariHtml() {
+  const m = pnl.month || ymNow(), names = {}, agg = {}; (pnl.d.rnames || []).forEach(r => names[r.id] = r.name);
+  (pnl.d.cari || []).forEach(r => { const a = agg[r.restaurant_id] || (agg[r.restaurant_id] = { n: 0, t: 0 }); a.n++; a.t += Number(r.fee || 0); });
+  const list = Object.entries(agg).sort((a, b) => b[1].t - a[1].t), tot = list.reduce((s, [, a]) => s + a.t, 0);
+  return `<div class="mf"><b>Cari hesap · kurye ücreti borcu</b><div class="prow"><input id="cm" type="month" value="${esc(m)}"><button class="go" data-cgo>Göster</button></div></div>` + (list.length ? list.map(([id, a]) => `<div class="pmi"><span><b>${esc(names[id] || id.slice(0, 8))}</b><br><span class="info">${a.n} teslim edilen çağrı</span></span><b>${tl(a.t)}</b></div>`).join('') + `<div class="pmi"><b>Toplam</b><b>${tl(tot)}</b></div>` : '<div class="empty">Bu ay teslim edilen çağrı yok.</div>');
+}
+startPoll();
+async function rmap() { if (!pnl.d.rm) { const l = await api('restaurants?select=id,name,commission_rate,delivery_fee&limit=500'); pnl.d.rm = Object.fromEntries(l.map(r => [r.id, r])); } return pnl.d.rm; }
+async function load() {
+  pnl.err = ''; render(true);
+  try {
+    if (pnl.tab === 'dash') {
+      const [r, o, c, p] = await Promise.all([api('restaurants?select=id,is_active'), api('orders?select=total_amount,status,created_at,restaurant_id&limit=1000'), api('courier_profiles?select=*'), api('coupons?select=approval_status')]);
+      const rm = await rmap(); o.forEach(x => { x.restaurants = rm[x.restaurant_id] || null; });
+      pnl.d.dash = [{ r, o, c, p }];
+    } else if (pnl.tab === 'menu') {
+      pnl.d.rl = pnl.d.rl || await api('restaurants?select=id,name&order=name.asc'); pnl.sel = pnl.sel || (pnl.d.rl[0] || {}).id;
+      pnl.d.menu = pnl.sel ? await api('menu_items?select=*&restaurant_id=eq.' + encodeURIComponent(pnl.sel) + '&limit=300') : [];
+      try { pnl.d.mcat = pnl.sel ? await api('menu_categories?select=*&restaurant_id=eq.' + encodeURIComponent(pnl.sel)) : []; } catch (e) { pnl.d.mcat = []; }
+    } else { if (pnl.tab === 'rest') { delete pnl.d.rl; delete pnl.d.rm; try { pnl.d.cu = await api('cuisines?select=id,name,emoji&order=sort_order'); } catch (e) { pnl.d.cu = []; } } if (pnl.tab === 'earn') { const P = periodOf(Number(pnl.per || 0)), rg = '&created_at=gte.' + encodeURIComponent(P.s.toISOString()) + '&created_at=lt.' + encodeURIComponent(P.e.toISOString()); try { const [st, cr, cp] = await Promise.all([api('app_settings?select=key,value&key=eq.courier_payout'), api('courier_requests?select=id,fee,status,courier_id,created_at,delivered_at&limit=1000' + rg), api('courier_profiles?select=id,full_name')]); pnl.d.po = Number((st[0] || {}).value) || 0; pnl.d.cr = cr; pnl.d.cp = cp; } catch (e) { pnl.d.po = 0; pnl.d.cr = []; pnl.d.cp = []; pnl.err = 'Kurye verisi alınamadı: ' + e.message; } try { pnl.d.pp = await api('payouts?select=*&limit=1000'); } catch (e) { pnl.d.pp = null; } } pnl.d[pnl.tab] = await api(typeof Q[pnl.tab] === 'function' ? Q[pnl.tab]() : Q[pnl.tab]); if (['ord', 'earn', 'rev'].includes(pnl.tab)) { const rm = await rmap(); pnl.d[pnl.tab].forEach(x => { x.restaurants = rm[x.restaurant_id] || null; }); } for (const k of (X[pnl.tab] || [])) pnl.d[k] = await api(qf(k)); }
+  } catch (e) { pnl.d[pnl.tab] = []; pnl.err = e.message; toast(e.message); }
+  render(); if (pnl.err && $('#abody')) $('#abody').insertAdjacentHTML('afterbegin', '<p class="err">' + esc(pnl.err) + '</p>');
+}
+const agg = list => { const m = {}; list.forEach(x => { const rs = x.restaurants || {}, n = rs.name || '—', e = m[n] = m[n] || { n, c: 0, t: 0, r: rs.commission_rate ?? 10 }; e.c++; e.t += Number(x.total_amount) || 0; }); return Object.values(m).sort((a, z) => z.t - a.t); };
+const topList = ok => '<h3 style="margin:16px 0 8px">En çok satan restoranlar</h3>' + (agg(ok).slice(0, 5).map(e => `<div class="pmi"><span><b>${esc(e.n)}</b></span><span>${e.c} sipariş · <b>${tl(e.t)}</b></span></div>`).join('') || '<div class="empty">Henüz sipariş yok.</div>');
+const ST = { pending: '⏳ Onay bekliyor', approved: '✅ Onaylı', suspended: '⏸ Askıda', rejected: '❌ Reddedildi' };
+const B = (t, id, a, label, cls, v, k) => `<button class="${cls || 'ghost'}" data-do="${a}" data-t="${t}" data-id="${esc(id)}"${v ? ` data-v="${esc(JSON.stringify(v))}"` : ''}${k ? ` data-k="${k}"` : ''}>${label}</button>`;
+const I = (f, val, type, w, ph) => `<input data-f="${f}" type="${type || 'text'}"${type === 'number' ? ' step="any" min="0"' : ''} value="${esc(val ?? '')}" placeholder="${ph || f}"${w ? ` style="max-width:${w}"` : ''}>`;
 function render(wait) {
   const t = $('#atabs'), b = $('#abody'); if (!t || !b) return;
   t.innerHTML = TABS.map(([k, n]) => `<button data-atab="${k}" class="${pnl.tab === k ? 'on' : ''}">${n}</button>`).join('');
   const rows = pnl.d[pnl.tab]; if (wait || !rows) { b.innerHTML = '<p class="info">Yükleniyor…</p>'; return; }
-  const tt = pnl.tab, E = '<div class="empty">Kayıt yok.</div>';
-  if (tt === 'rest') b.innerHTML = rows.map(r => `<div class="ocard"><b>${esc(r.name)}</b> <span class="badge">${!r.is_active ? '⏳ Onay bekliyor' : r.is_paused ? '⏸ Sipariş almıyor' : '✅ Açık'}</span><p class="info">${esc(r.city || '')} ${esc(r.district || '')} · ${esc(r.phone || '')}</p><div class="prow"><input id="cm-${esc(r.id)}" type="number" min="0" max="50" step="0.5" value="${esc(r.commission_rate ?? 10)}" style="max-width:90px"><button data-rcom="${esc(r.id)}">Komisyon % kaydet</button>${r.is_active ? `<button class="ghost" data-rcls="${esc(r.id)}">Yayından kaldır</button>` : `<button class="go" data-rapp="${esc(r.id)}">Onayla</button>`}</div></div>`).join('') || E;
-  if (tt === 'promo') b.innerHTML = rows.map(c => `<div class="ocard"><b>${esc(c.code)}</b> <span class="badge">${esc((c.restaurants || {}).name || 'Platform')}</span><p class="info">${c.discount_type === 'yuzde' ? '%' + esc(c.discount_value) : tl(c.discount_value)} · min. ${tl(c.min_order_amount)}${c.usage_limit ? ' · ' + esc(c.usage_limit) + ' kullanım' : ''}${c.expires_at ? ' · ' + esc(new Date(c.expires_at).toLocaleDateString('tr-TR')) + ' tarihine kadar' : ''}</p><div class="prow"><button class="go" data-papp="${esc(c.id)}">Onayla</button><button class="ghost" data-prej="${esc(c.id)}">Reddet</button></div></div>`).join('') || '<div class="empty">Onay bekleyen kampanya yok.</div>';
-  if (tt === 'cour') b.innerHTML = [...rows].sort((a, z) => (a.status === 'pending' ? 0 : 1) - (z.status === 'pending' ? 0 : 1)).map(c => `<div class="ocard"><b>${esc(c.full_name)}</b> <span class="badge">${ST[c.status] || esc(c.status)}</span><p class="info">📞 <a href="tel:${esc(telOf(c.phone))}">${esc(c.phone)}</a></p><div class="prow">${c.status !== 'approved' ? `<button class="go" data-capp="${esc(c.id)}">Onayla</button>` : ''}${c.status !== 'suspended' ? `<button class="ghost" data-csus="${esc(c.id)}">Askıya al</button>` : ''}</div></div>`).join('') || E;
-  if (tt === 'ord') b.innerHTML = rows.map(o => `<div class="pmi"><span><b>${esc((o.restaurants || {}).name || '')}</b><br><span class="info">${esc(new Date(o.created_at).toLocaleString('tr-TR'))} · ${esc(o.payment_method || '')}</span></span><span><b>${tl(o.total_amount)}</b> <span class="badge">${esc(o.status)}</span></span></div>`).join('') || E;
-  if (tt === 'set') { const fee = (rows.find(x => x.key === 'courier_fee') || {}).value || '40'; b.innerHTML = `<div class="mf"><b>Kurye ücreti (₺)</b><p class="hint">Restoranın her kurye isteğinde ödediği sabit ücret. Yeni isteklere uygulanır.</p><div class="prow"><input id="sf" type="number" min="0" step="1" value="${esc(fee)}" style="max-width:120px"><button class="go" data-sfee>Kaydet</button></div></div>`; }
+  const tt = pnl.tab, E = '<div class="empty">Kayıt yok.</div>', C = '<div class="ocard" data-card>';
+  if (tt === 'calls') { b.innerHTML = callsHtml(); return; }
+  if (tt === 'cari') { b.innerHTML = cariHtml(); return; }
+  if (tt === 'log') b.innerHTML = rows.map(r => { const ds = r.created_at || r.at || r.changed_at || r.ts || ''; return `${C}<b>${esc(r.action || r.op || r.event || 'işlem')}</b> <span class="badge">${esc(r.table_name || r.entity || '')}</span><p class="info">${esc(ds ? new Date(ds).toLocaleString('tr-TR') : '')}</p><p class="hint" style="word-break:break-all">${esc(Object.entries(r).filter(([k, v]) => v != null && !/^(id|created_at|at|action|op|event|table_name)$/.test(k)).map(([k, v]) => k + ': ' + (typeof v === 'object' ? JSON.stringify(v) : v)).join(' · ').slice(0, 300))}</p></div>`; }).join('') || E;
+  if (tt === 'rev') b.innerHTML = rows.map(v => `${C}<b>${esc((v.restaurants || {}).name || '')}</b> <span class="badge">${'⭐'.repeat(Math.max(0, Math.min(5, Number(v.rating) || 0)))}</span><p class="info">${esc(new Date(v.created_at).toLocaleDateString('tr-TR'))}</p><p>${esc(v.comment || '(yorum yok)')}</p><div class="prow">${B('reviews', v.id, 'del', 'Yorumu kaldır')}</div></div>`).join('') || E;
+  if (tt === 'cfee') { const g = k => (rows.find(x => x.key === k) || {}).value ?? '', F = (t, h, k, i, v) => `<div class="mf"><b>${t}</b><p class="hint">${h}</p><div class="prow"><input id="${i}" type="number" step="any" min="0" value="${esc(v)}"><button class="go" data-do="setfee" data-k="${k}" data-i="${i}">Kaydet</button></div></div>`;
+    b.innerHTML = F('Özel kurye çağrı ücreti (₺)', 'Restoran özel kurye çağırdığında restorandan alınan sabit ücret. Yeni çağrılara uygulanır.', 'courier_fee', 'cf1', g('courier_fee') || 40) + F('Kuryeye ödenen ücret (₺)', 'Kurye bir özel çağrıyı tamamlayınca kuryeye ödenen tutar.', 'courier_payout', 'cf2', g('courier_payout') || 0); }
+  if (tt === 'earn') { const per = Number(pnl.per || 0), P = periodOf(per), po = pnl.d.po || 0, pp = pnl.d.pp, today = new Date(), days = [], ps = iso(P.s), pe = iso(P.last), f = d => d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+    for (const d = new Date(P.s); d <= P.last && !(per === 0 && d > today); d.setDate(d.getDate() + 1)) days.push(new Date(d));
+    const keys = days.map(d => d.toDateString()), D = {}, R = {}, CR = {}, z = () => ({ n: 0, ciro: 0, del: 0, comm: 0, cin: 0, cn: 0, cour: 0, pay: 0 }), add = (x, t, fd, df, cm) => { x.n++; x.ciro += t; x.del += df; x.comm += cm; x.pay += fd - cm; };
+    keys.forEach(k => { D[k] = z(); });
+    rows.forEach(o => { const k = new Date(o.created_at).toDateString(); if (!D[k] || /cancel|iptal/i.test(o.status)) return; const rs = o.restaurants || {}, t = Number(o.total_amount) || 0, df = o.delivery_fee != null ? Number(o.delivery_fee) : Number(rs.delivery_fee) || 0, fd = Math.max(0, t - df), cm = fd * (rs.commission_rate ?? 10) / 100; add(D[k], t, fd, df, cm); add(R[o.restaurant_id] = R[o.restaurant_id] || { ...z(), nm: rs.name || '—' }, t, fd, df, cm); });
+    (pnl.d.cr || []).forEach(c => { if (!(c.delivered_at || /deliver|teslim/i.test(c.status))) return; const x = D[new Date(c.delivered_at || c.created_at).toDateString()]; if (!x) return; x.cin += Number(c.fee) || 0; x.cn++; x.cour += po; const id = c.courier_id || '—'; CR[id] = (CR[id] || 0) + 1; });
+    const net = x => x.comm + x.del + x.cin - x.cour, T = z(), col = v => v >= 0 ? 'var(--green)' : 'var(--err)'; Object.values(D).forEach(x => { for (const g in T) T[g] += x[g]; });
+    const K = [['Hasılat / ciro', T.ciro], ['Teslimat geliri', T.del], ['Komisyon', T.comm], ['Kurye çağrı geliri', T.cin], ['Kurye gideri', -T.cour], ['Restoranlara ödenecek', T.pay], ['Teslim edilen kurye çağrısı', T.cn + ' adet'], ['Bana kalan', net(T)]], L = K.length - 1;
+    pnl.csv = { name: 'kazanc_' + ps + '_' + pe, rows: [['Tarih', 'Sipariş', 'Ciro', 'Teslimat geliri', 'Komisyon', 'Kurye çağrı geliri', 'Kurye gideri', 'Restorana ödenecek', 'Bana kalan'], ...days.map((d, i) => { const x = D[keys[i]]; return [d.toLocaleDateString('tr-TR'), x.n, x.ciro, x.del, x.comm, x.cin, x.cour, x.pay, net(x)]; }), [], ['Restoran', 'Sipariş', 'Ciro', 'Komisyon', 'Restorana ödenecek'], ...Object.values(R).map(x => [x.nm, x.n, x.ciro, x.comm, x.pay])] };
+    const pr = (kind, id, nm, amt, info) => { const r = (pp || []).find(p => p.kind === kind && p.payee_id === String(id) && p.period_start === ps); return `<div class="pmi"><span><b>${esc(nm)}</b><br><span class="info">${info}</span></span><span><b>${tl(amt)}</b>${pp ? (r ? `<span class="badge">✅ Ödendi</span><button class="ghost" data-do="payundo" data-id="${esc(r.id)}">Geri al</button>` : `<button class="go" data-do="paydo" data-kind="${kind}" data-id="${esc(id)}" data-amt="${amt.toFixed(2)}" data-ps="${ps}" data-pe="${pe}">Ödendi işaretle</button>`) : ''}</span></div>`; };
+    b.innerHTML = `<select id="per">${[0, 1, 2, 3].map(i => { const q = periodOf(i); return `<option value="${i}"${i === per ? ' selected' : ''}>${f(q.s)} – ${f(q.last)}${i ? '' : ' (bu dönem)'}</option>`; }).join('')}</select><button class="ghost" data-do="csv" style="width:100%;margin-bottom:8px">⬇ Excel (CSV) indir</button><div class="kpi">${K.map(([n, v], i) => `<div${i === L ? ` style="border-color:${col(v)}"` : ''}><span>${n}</span><b${i === L ? ` style="color:${col(v)}"` : ''}>${typeof v === 'number' ? tl(v) : v}</b></div>`).join('')}</div><p class="hint">${T.n} sipariş ve ${T.cn} kurye çağrısı (iptaller hariç). Dönemler ayın 1-15'i ve 16'sı-sonu şeklindedir. Bana kalan = komisyon + teslimat geliri + kurye çağrı geliri − kurye gideri.${po ? '' : ' Kuryeye ödenen ücret girilmediği için kurye gideri 0 görünüyor; Kurye ücretleri sekmesinden gir.'}${rows.length >= 1000 ? ' ⚠ 1000 siparişten fazlası var, rapor eksik olabilir.' : ''}</p><h3 style="margin:16px 0 8px">Günlük döküm</h3>` + days.map((d, i) => { const x = D[keys[i]]; return `<div class="pmi"><span><b>${esc(d.toLocaleDateString('tr-TR'))}</b><br><span class="info">${x.n} sipariş · ciro ${tl(x.ciro)} · komisyon ${tl(x.comm)} · ${x.cn} kurye çağrısı</span></span><span><b style="color:${col(net(x))}">${tl(net(x))}</b></span></div>`; }).join('') + '<h3 style="margin:16px 0 8px">Restoran hakedişi</h3>' + (pp ? '' : '<p class="err">Ödeme takibi için payouts tablosu henüz oluşturulmamış.</p>') + (Object.entries(R).sort((a, c) => c[1].ciro - a[1].ciro).map(([id, x]) => pr('restaurant', id, x.nm, x.pay, `${x.n} sipariş · ciro ${tl(x.ciro)} · komisyon ${tl(x.comm)}`)).join('') || E) + '<h3 style="margin:16px 0 8px">Kurye hakedişi</h3>' + (Object.entries(CR).filter(([id]) => id !== '—').sort((a, c) => c[1] - a[1]).map(([id, n]) => pr('courier', id, ((pnl.d.cp || []).find(p => p.id === id) || {}).full_name || id.slice(0, 8), n * po, `${n} teslimat`)).join('') || '<div class="empty">Bu dönemde teslim edilen kurye çağrısı yok.</div>'); }
+  if (tt === 'cat') b.innerHTML = `<div class="mf"><b>➕ Yeni kategori ekle</b><div class="prow"><input id="ncn" placeholder="Mutfak adı (örn. Kebap)"><input id="nce" placeholder="Emoji" style="max-width:90px"><button class="go" data-do="newcat">Ekle</button></div></div>` + (rows.map(c => { const nf = 'name' in c || !('title' in c) ? 'name' : 'title'; return `${C}${I('name', c.name, 0, 0, 'Ad')}<div class="prow">${I('emoji', c.emoji, 0, '90px', 'Emoji')}${I('sort_order', c.sort_order ?? 0, 'number', '90px', 'Sıra')}${B('cuisines', c.id, 'save', 'Kaydet', 'go')}${B('cuisines', c.id, 'del', 'Sil')}</div></div>`; }).join('') || E);
+  if (tt === 'usr') { const roles = [...new Set([...rows.map(u => u.role).filter(Boolean), 'admin'])]; b.innerHTML = rows.map(u => `${C}<b>${esc(u.display_name || u.full_name || String(u.id).slice(0, 8))}</b><p class="info">${esc(u.email || u.phone || '')} · ${esc(String(u.id).slice(0, 8))}…</p><div class="prow"><select data-urole="${esc(u.id)}">${roles.map(r => `<option${r === u.role ? ' selected' : ''}>${esc(r)}</option>`).join('')}</select></div></div>`).join('') || E; }
+  if (tt === 'dash') { const { r, o, c, p } = rows[0] || { r: [], o: [], c: [], p: [] }, td = new Date().toDateString(), ok = o.filter(x => !/cancel|iptal/i.test(x.status));
+    const K = [['Bugünkü sipariş', o.filter(x => new Date(x.created_at).toDateString() === td).length], ['Toplam sipariş', o.length], ['Toplam ciro', tl(ok.reduce((n, x) => n + (Number(x.total_amount) || 0), 0))], ['Aktif restoran', r.filter(x => x.is_active).length + ' / ' + r.length], ['Çevrimiçi kurye', c.filter(x => x.is_online).length], ['Onay bekleyen kurye', c.filter(x => x.status === 'pending').length], ['Onay bekleyen kupon', p.filter(x => x.approval_status === 'pending').length]];
+    b.innerHTML = '<div class="kpi">' + K.map(([n, v]) => `<div><span>${n}</span><b>${v}</b></div>`).join('') + '</div>' + topList(ok); }
+  if (tt === 'rest') b.innerHTML = `<div class="mf"><b>➕ Yeni restoran ekle</b><div class="prow"><input id="nrn" placeholder="Restoran adı"><input id="nrp" placeholder="Telefon"></div><div class="prow"><input id="nrc" placeholder="Şehir"><input id="nrd" placeholder="İlçe"></div><div class="prow"><input id="nra" placeholder="Adres"><input id="nrf" type="number" step="any" min="0" placeholder="Teslimat ücreti ₺" style="max-width:150px"></div><div class="prow"><select id="nrcu"><option value="">Mutfak türü seç</option>${(pnl.d.cu || []).map(c => `<option value="${esc(c.id)}">${esc((c.emoji || '') + ' ' + c.name)}</option>`).join('')}</select><button class="go" data-do="newrest">Ekle</button></div></div>` + (rows.map(r => `<div class="ocard ${r.is_active ? 'on' : 'offc'}" data-card><b>${esc(r.name)}</b> <span class="badge${r.is_active ? '' : ' bad'}">${!r.is_active ? '⛔ Pasif (uygulamada görünmüyor)' : r.is_paused ? '⏸ Sipariş almıyor' : '✅ Açık'}</span>
+<div class="prow">${I('name', r.name, 0, 0, 'Ad')}${I('phone', r.phone, 0, 0, 'Telefon')}</div><div class="prow">${I('city', r.city, 0, 0, 'Şehir')}${I('district', r.district, 0, 0, 'İlçe')}${I('commission_rate', r.commission_rate ?? 10, 'number', '90px', 'Komisyon %')}</div>${'open_time' in r ? `<div class="prow"><span class="info" style="align-self:center">Çalışma saatleri</span>${I('open_time', (r.open_time || '').slice(0, 5), 'time', '130px', 'Açılış')}${I('close_time', (r.close_time || '').slice(0, 5), 'time', '130px', 'Kapanış')}</div>` : ''}
+<div class="prow">${B('restaurants', r.id, 'save', 'Kaydet', 'go')}${r.is_active ? B('restaurants', r.id, 'set', '⏸ Pasife al', 'rd', { is_active: false }) : B('restaurants', r.id, 'set', '✅ Aktife al', 'gr', { is_active: true, is_paused: false })}${B('restaurants', r.id, 'del', 'Sil')}</div></div>`).join('') || E);
+  if (tt === 'menu') b.innerHTML = `<select id="msel">${(pnl.d.rl || []).map(r => `<option value="${esc(r.id)}"${r.id === pnl.sel ? ' selected' : ''}>${esc(r.name)}</option>`).join('')}</select><div class="mf"><b>➕ Yeni menü kategorisi ekle</b><div class="prow"><input id="nmc" placeholder="Örn. Ana yemekler"><button class="go" data-do="newmcat">Ekle</button></div></div><div class="mf"><b>➕ Yeni ürün ekle</b><div class="prow">${(pnl.d.mcat || []).length ? `<select id="nic">${pnl.d.mcat.map(c => `<option value="${esc(c.id)}"${String(c.id) === String((rows[0] || {}).category_id) ? ' selected' : ''}>${esc(c.name || c.title || c.id)}</option>`).join('')}</select>` : ''}<input id="nin" placeholder="Ürün adı"><input id="nip" type="number" step="any" min="0" placeholder="Fiyat ₺" style="max-width:110px"><button class="go" data-do="newitem">Ekle</button></div></div>` + (rows.map(m => { const a = 'is_available' in m ? 'is_available' : 'is_active' in m ? 'is_active' : null, nf = 'name' in m ? 'name' : 'title';
+    return `${C}${I(nf, m[nf], 0, 0, 'Ürün adı')}<div class="prow">${I('price', m.price, 'number', '110px', '₺')}${B('menu_items', m.id, 'save', 'Kaydet', 'go')}${a ? B('menu_items', m.id, 'set', m[a] === false ? 'Satışa aç' : 'Satıştan kaldır', 0, { [a]: m[a] === false }) : ''}${B('menu_items', m.id, 'del', 'Sil')}</div></div>`; }).join('') || E);
+  if (tt === 'promo') b.innerHTML = rows.map(c => `${C}<b>${esc(c.code)}</b> <span class="badge">${esc((c.restaurants || {}).name || 'Platform')}</span> <span class="badge">${ST[c.approval_status] || esc(c.approval_status)}${c.is_active ? '' : ' · pasif'}</span><p class="info">${c.discount_type === 'yuzde' ? '%' + esc(c.discount_value) : tl(c.discount_value)} · min. ${tl(c.min_order_amount)}${c.usage_limit ? ' · ' + esc(c.usage_limit) + ' kullanım' : ''}${c.expires_at ? ' · ' + esc(new Date(c.expires_at).toLocaleDateString('tr-TR')) + ' tarihine kadar' : ''}</p><div class="prow">${c.approval_status !== 'approved' ? B('coupons', c.id, 'set', 'Onayla', 'go', { approval_status: 'approved', is_active: true, reject_reason: null }) : B('coupons', c.id, 'set', c.is_active ? 'Pasifleştir' : 'Aktifleştir', 0, { is_active: !c.is_active })}${c.approval_status !== 'rejected' ? B('coupons', c.id, 'rej', 'Reddet') : ''}${B('coupons', c.id, 'del', 'Sil')}</div></div>`).join('') || E;
+  if (tt === 'cour') { const act = new Set((pnl.d.active || []).map(x => x.courier_id)), pf = {}; (pnl.d.perf || []).forEach(x => { const p = pf[x.courier_id] || (pf[x.courier_id] = { n: 0, s: 0, k: 0 }); p.n++; if (x.accepted_at && x.delivered_at) { p.s += (new Date(x.delivered_at) - new Date(x.accepted_at)) / 6e4; p.k++; } });
+    b.innerHTML = [...rows].sort((a, z) => (a.status === 'pending' ? 0 : 1) - (z.status === 'pending' ? 0 : 1)).map(c => { const p = pf[c.id], st = c.status !== 'approved' ? (ST[c.status] || esc(c.status)) : act.has(c.id) ? '🛵 Çağrıda' : c.is_online ? '🟢 Çevrimiçi' : '⚪ Çevrimdışı'; return `${C}<b>${esc(c.full_name)}</b> <span class="badge">${st}</span><p class="info">📞 <a href="tel:${esc(telOf(c.phone))}">${esc(c.phone)}</a>${p ? ` · ${p.n} teslimat${p.k ? ' · ort. ' + Math.round(p.s / p.k) + ' dk' : ''}` : ' · henüz teslimat yok'}</p><div class="prow">${c.status !== 'approved' ? B('courier_profiles', c.id, 'set', 'Onayla', 'go', { status: 'approved' }) : ''}${c.status !== 'suspended' ? B('courier_profiles', c.id, 'set', 'Askıya al', 0, { status: 'suspended' }) : ''}${B('courier_profiles', c.id, 'del', 'Sil')}</div></div>`; }).join('') || E; }
+  if (tt === 'ord') { const sts = [...new Set([...rows.map(o => o.status), 'cancelled'])]; pnl.csv = { name: 'siparisler', rows: [['Tarih', 'Restoran', 'Ödeme', 'Tutar', 'Durum'], ...rows.map(o => [new Date(o.created_at).toLocaleString('tr-TR'), (o.restaurants || {}).name || '', o.payment_method || '', Number(o.total_amount) || 0, o.status])] }; b.innerHTML = '<button class="ghost" data-do="csv">⬇ Excel (CSV) indir</button>' + rows.map(o => `${C}<b>${esc((o.restaurants || {}).name || '')}</b> · <b>${tl(o.total_amount)}</b><p class="info">${esc(new Date(o.created_at).toLocaleString('tr-TR'))} · ${esc(PAYS[o.payment_method] || o.payment_method || '')}</p><div class="prow"><select data-ost="${esc(o.id)}">${sts.map(s => `<option${s === o.status ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select>${B('orders', o.id, 'del', 'Sil')}</div></div>`).join('') || E; }
+  if (tt === 'set') b.innerHTML = rows.map(s => `<div class="mf" data-card><b>${esc(s.key)}</b>${s.key === 'courier_fee' ? '<p class="hint">Restoranın her kurye isteğinde ödediği sabit ücret (₺).</p>' : ''}<div class="prow">${I('value', s.value, 0, 0, 'Değer')}${B('app_settings', s.key, 'save', 'Kaydet', 'go', 0, 'key')}</div></div>`).join('') + `<div class="mf"><b>Yeni ayar ekle</b><div class="prow"><input id="nk" placeholder="anahtar"><input id="nv" placeholder="değer"><button class="go" data-do="newset">Ekle</button></div></div>`;
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return; const d = b.dataset;
-  if ('login' in d) return doLogin(); if ('rlogin' in d) return showLogin(); if ('verify' in d) return verifyCode(); if ('resend' in d) return resendCode();
+  if ('login' in d) return doLogin();
   if ('out' in d) { signOut(); return showLogin(); }
   if (d.atab) { pnl.tab = d.atab; return load(); }
-  let job = null, ok = 'Kaydedildi ✓';
-  if (d.rapp) job = () => pch('restaurants?id=eq.' + encodeURIComponent(d.rapp), { is_active: true });
-  if (d.rcls) job = () => pch('restaurants?id=eq.' + encodeURIComponent(d.rcls), { is_active: false });
-  if (d.rcom) { const v = Number(document.getElementById('cm-' + d.rcom).value); if (!isFinite(v) || v < 0 || v > 50) return toast('Komisyon 0 ile 50 arasında olmalı'); job = () => pch('restaurants?id=eq.' + encodeURIComponent(d.rcom), { commission_rate: v }); }
-  if (d.papp) job = () => pch('coupons?id=eq.' + encodeURIComponent(d.papp), { approval_status: 'approved', is_active: true, reject_reason: null });
-  if (d.prej) { const why = prompt('Red nedeni (restoran görecek):'); if (why === null) return; job = () => pch('coupons?id=eq.' + encodeURIComponent(d.prej), { approval_status: 'rejected', is_active: false, reject_reason: why.trim() || 'Uygun bulunmadı' }); }
-  if (d.capp) job = () => pch('courier_profiles?id=eq.' + encodeURIComponent(d.capp), { status: 'approved' });
-  if (d.csus) job = () => pch('courier_profiles?id=eq.' + encodeURIComponent(d.csus), { status: 'suspended' });
-  if ('sfee' in d) { const v = Number(document.getElementById('sf').value); if (!isFinite(v) || v < 0 || v > 1000) return toast('Geçerli bir ücret yaz'); job = () => pch('app_settings?key=eq.courier_fee', { value: String(v) }); }
-  if (job) { try { await job(); toast(ok); await load(); } catch (x) { toast(x.message); } }
+  let job = null; const a = d.do, k = d.k || 'id', q = () => d.t + '?' + k + '=eq.' + encodeURIComponent(d.id);
+  if (a && !/^(new|setfee|csv|pay)/.test(a) && !TBL.includes(d.t)) return;
+  if (a === 'save') { const o = {}; b.closest('[data-card]').querySelectorAll('[data-f]').forEach(i => { o[i.dataset.f] = i.type === 'number' ? Number(i.value) : i.value.trim(); });
+    if ('commission_rate' in o && !(o.commission_rate >= 0 && o.commission_rate <= 50)) return toast('Komisyon 0 ile 50 arasında olmalı');
+    if ('name' in o && !o.name) return toast('Ad boş olamaz'); if ('price' in o && !(o.price >= 0)) return toast('Geçerli bir fiyat yaz');
+    if ('open_time' in o) { o.open_time = o.open_time || null; o.close_time = o.close_time || null; }
+    job = () => pch(q(), o); }
+  if (a === 'set') job = () => pch(q(), JSON.parse(d.v));
+  if (a === 'rej') { const why = prompt('Red nedeni (restoran görecek):'); if (why === null) return; job = () => pch(q(), { approval_status: 'rejected', is_active: false, reject_reason: why.trim() || 'Uygun bulunmadı' }); }
+  if (a === 'del') { if (!confirm('Bu kayıt kalıcı olarak silinecek. Emin misin?')) return; job = () => mut('DELETE', q()); }
+  if (a === 'newset') { const key = $('#nk').value.trim(), val = $('#nv').value.trim(); if (!key) return toast('Anahtar yaz'); job = () => mut('POST', 'app_settings', { key, value: val }, ',resolution=merge-duplicates'); }
+  if (a === 'newrest') { const name = $('#nrn').value.trim(); if (!name) return toast('Restoran adı yaz'); job = () => mut('POST', 'restaurants', { name, phone: $('#nrp').value.trim() || null, city: $('#nrc').value.trim() || null, district: $('#nrd').value.trim() || null, commission_rate: 10, is_active: true, is_open: true, owner_id: sess.uid, address: $('#nra').value.trim() || '', delivery_fee: Number($('#nrf').value) || 0, cuisine_id: $('#nrcu').value || null }); }
+  if (a === 'newitem') { const name = $('#nin').value.trim(), pv = $('#nip').value, price = Number(pv); if (!pnl.sel) return toast('Önce restoran seç'); if (!name || pv === '' || !(price >= 0)) return toast('Ürün adı ve fiyat yaz'); const f0 = (pnl.d.menu || [])[0] || {}; const cat = $('#nic') && $('#nic').value; if (!cat) return toast('Önce bu restoran için bir menü kategorisi ekle'); job = () => mut('POST', 'menu_items', { restaurant_id: pnl.sel, category_id: cat, is_available: true, [!('name' in f0) && 'title' in f0 ? 'title' : 'name']: name, price }); }
+  if ('cref' in d) return load();
+  if ('cgo' in d) { pnl.month = document.getElementById('cm').value || ''; return load(); }
+  if (d.asg) { const sl = document.getElementById('as-' + d.asg); if (!sl || !sl.value) return toast('Önce onaylı bir kurye gerekli'); job = () => pch('courier_requests?id=eq.' + enc(d.asg), { courier_id: sl.value, status: 'assigned', accepted_at: new Date().toISOString() }); }
+  if (d.rel) job = () => pch('courier_requests?id=eq.' + enc(d.rel), { courier_id: null, status: 'open', accepted_at: null });
+  if (d.rcan) { if (!confirm('Çağrı iptal edilsin mi?')) return; job = () => pch('courier_requests?id=eq.' + enc(d.rcan), { status: 'cancelled' }); }
+  if (a === 'csv') { if (pnl.csv) csv(pnl.csv.name, pnl.csv.rows); return; }
+  if (a === 'paydo') job = () => mut('POST', 'payouts', { kind: d.kind, payee_id: d.id, period_start: d.ps, period_end: d.pe, amount: Number(d.amt) });
+  if (a === 'payundo') { if (!confirm('Ödendi işareti kaldırılsın mı?')) return; job = () => mut('DELETE', 'payouts?id=eq.' + encodeURIComponent(d.id)); }
+  if (a === 'setfee') { const v = Number($('#' + d.i).value); if (!isFinite(v) || v < 0 || v > 1000) return toast('Geçerli bir ücret yaz'); job = () => mut('POST', 'app_settings', { key: d.k, value: String(v) }, ',resolution=merge-duplicates'); }
+  if (a === 'newmcat') { const name = $('#nmc').value.trim(); if (!name || !pnl.sel) return toast('Kategori adı yaz'); job = () => mut('POST', 'menu_categories', { restaurant_id: pnl.sel, name }); }
+  if (a === 'newcat') { const name = $('#ncn').value.trim(); if (!name) return toast('Kategori adı yaz'); job = () => mut('POST', 'cuisines', { name, emoji: $('#nce').value.trim() || '🍽️' }); }
+  if (job) { try { await job(); toast('Kaydedildi ✓'); await load(); } catch (x) { toast(x.message); } }
+});
+document.addEventListener('change', async e => {
+  const s = e.target;
+  if (s.id === 'msel') { pnl.sel = s.value; return load(); }
+  if (s.id === 'per') { pnl.per = s.value; return load(); }
+  if (s.dataset.urole) { if (s.dataset.urole === sess.uid) { toast('Kendi rolünü değiştiremezsin'); return load(); } if (!confirm('Kullanıcının rolü değişecek. Emin misin?')) return load(); try { await pch('profiles?id=eq.' + encodeURIComponent(s.dataset.urole), { role: s.value }); toast('Rol güncellendi ✓'); } catch (x) { toast(x.message); } return load(); }
+  if (s.dataset.ost) { try { await pch('orders?id=eq.' + encodeURIComponent(s.dataset.ost), { status: s.value }); toast('Durum güncellendi ✓'); } catch (x) { toast(x.message); } load(); }
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.target.id === 'em' || e.target.id === 'pw')) { e.preventDefault(); doLogin(); }
-  if (e.key === 'Enter' && e.target.id === 'cd') { e.preventDefault(); verifyCode(); }
 });
 (async () => { await fresh(); who(); sess ? start() : showLogin(); })();
 </script>

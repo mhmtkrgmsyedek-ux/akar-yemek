@@ -204,6 +204,7 @@ select{font:inherit;font-size:16px;width:100%;padding:12px;border:1px solid var(
 }
 @media(max-width:390px){.grid{grid-template-columns:1fr}.foodpic{height:150px}.hero h1{font-size:34px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.card,.ocard{box-shadow:0 1px 2px #00000008,0 12px 28px -18px #00000040;transition:transform .15s,box-shadow .15s}.card:hover{transform:translateY(-2px);box-shadow:0 14px 32px -16px #00000055}.go{box-shadow:0 8px 16px -8px #e53d32bb}
 </style>
 </head>
 <body>
@@ -348,8 +349,9 @@ try { myCity = localStorage.getItem('city') || myCity; myDist = localStorage.get
 const sameCity = (r, c) => !r.city || norm(r.city) === norm(c);
 const serves = (r, c, d) => sameCity(r, c) && (!r.district || !d || norm(r.district) === norm(d) || (Array.isArray(r.delivery_districts) ? r.delivery_districts : []).some(x => norm(x) === norm(d)));
 let farFallback = false;
+const inHrs = r => { const m = v => { const [h, k] = String(v).split(':'); return (+h) * 60 + (+k || 0); }, n = new Date(), t = n.getHours() * 60 + n.getMinutes(), a = m(r.open_time), z = m(r.close_time); return a <= z ? t >= a && t < z : t >= a || t < z; };
 const vis = () => {
-  const all = Object.values(rests).filter(r => sameCity(r, myCity));
+  const all = Object.values(rests).filter(r => r.is_active !== false && sameCity(r, myCity));
   const near = all.filter(r => serves(r, myCity, myDist));
   farFallback = !!myDist && near.length === 0 && all.length > 0;
   return farFallback ? all : near;
@@ -511,6 +513,7 @@ async function home() {
       api('cuisines?select=*&order=sort_order'),
       api('restaurants?select=*&order=name')
     ]);
+    list.forEach(r => { if (r.open_time && r.close_time && !inHrs(r)) r.is_open = false; });
     cuis = cu; rests = Object.fromEntries(list.map(r => [r.id, r])); loaded = true;
     const known = Object.values(rests).map(r => CITIES.find(c => norm(c) === norm(r.city))).filter(Boolean);
     if (known.length && !known.some(c => norm(c) === norm(myCity))) { myCity = known[0]; myDist = ''; }
@@ -617,7 +620,7 @@ async function openRest(id) {
 function draw() {
   const r = current, c = cuis.find(x => x.id === r.cuisine_id);
   $('#app').innerHTML = `<div class="wrap"><button class="back" data-home>← Restoranlar</button>
-<section class="hero rest"><div class="herotext"><span class="badge ${r.is_open ? '' : 'off'}">${r.is_open ? 'Açık' : 'Kapalı'}</span><h1>${esc(r.name)}</h1><p>${esc(r.description)}</p><div class="chips"><i>📍 ${esc(r.address)}</i><i class="feebox">🛵 Teslimat ${tl(r.delivery_fee)}</i><i class="feebox">🧺 Min. ${tl(r.min_order_amount)}</i>${revs.length ? `<i>★ ${avg()} (${revs.length})</i>` : ''}</div></div><div class="heroart" aria-hidden="true"><span>${esc((c && c.emoji) || '🍽️')}</span>${r.image_url ? `<img src="${esc(r.image_url)}" alt="">` : ''}</div></section>
+<section class="hero rest"><div class="herotext"><span class="badge ${r.is_open ? '' : 'off'}">${r.is_open ? 'Açık' : 'Kapalı'}</span><h1>${esc(r.name)}</h1><p>${esc(r.description)}</p><div class="chips"><i>📍 ${esc(r.address)}</i>${r.open_time && r.close_time ? `<i>🕒 ${esc(String(r.open_time).slice(0, 5))}–${esc(String(r.close_time).slice(0, 5))}</i>` : ''}<i class="feebox">🛵 Teslimat ${tl(r.delivery_fee)}</i><i class="feebox">🧺 Min. ${tl(r.min_order_amount)}</i>${revs.length ? `<i>★ ${avg()} (${revs.length})</i>` : ''}</div></div><div class="heroart" aria-hidden="true"><span>${esc((c && c.emoji) || '🍽️')}</span>${r.image_url ? `<img src="${esc(r.image_url)}" alt="">` : ''}</div></section>
 <div id="menu"></div>${revHtml()}</div>`;
   drawMenu();
 }

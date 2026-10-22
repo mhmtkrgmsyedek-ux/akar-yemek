@@ -63,6 +63,16 @@ a{color:var(--red-d)}
 .mf{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
 .pmi{flex-wrap:wrap}.pmi>span:last-child{display:flex;gap:6px;flex-wrap:wrap}
 .kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.kpi div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.kpi b{display:block;font-size:19px;margin-top:3px}.kpi span{font-size:12px;color:var(--muted)}
+body{background:linear-gradient(#fff4f1,#faf7f4 280px) fixed}
+.bar{box-shadow:0 2px 16px #0000000d}
+.ocard,.mf,.kpi div,.card{border-color:#f1e7e1;box-shadow:0 1px 2px #00000008,0 10px 26px -16px #00000030}
+.ocard.fresh{border-color:var(--red);box-shadow:0 0 0 3px #e53d3222,0 10px 26px -16px #e53d32}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:12px 0}.kpi div{background:#fff;border:1px solid #f1e7e1;border-radius:16px;padding:14px 16px}.kpi b{display:block;font-size:24px;letter-spacing:-.6px;margin-top:3px}.kpi span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.go{box-shadow:0 8px 16px -8px #e53d32bb}.go:hover{background:var(--red-d)}
+.ghost,.ptabs button{border-radius:12px}.ptabs button.on{box-shadow:0 8px 16px -8px #e53d32bb}
+#rcpt{display:none}
+@media print{body>*:not(#rcpt){display:none!important}#rcpt{display:block!important;font:14px/1.4 monospace;max-width:300px;color:#000}}
+@media(min-width:1000px){.wrap:has(#ptabs){max-width:1240px;display:grid;grid-template-columns:232px minmax(0,1fr);column-gap:28px;align-items:start}.wrap:has(#ptabs)>*{grid-column:2}.wrap:has(#ptabs)>.title,.wrap:has(#ptabs)>:not(#ptabs):not(#pbody){grid-column:1/-1}#ptabs{grid-column:1!important;flex-direction:column;position:sticky;top:78px;overflow:visible;margin:0;background:#fff;border:1px solid #f1e7e1;border-radius:18px;padding:10px}#ptabs button{text-align:left;border:0;padding:11px 14px;font-weight:700}#ptabs button:hover{background:#fff1ef}#ptabs button.on{background:var(--red);color:#fff}}
 </style>
 </head>
 <body>
@@ -273,7 +283,7 @@ function pendingView(rs) {
 /* ---------- panel ---------- */
 const STEPS = [['pending', 'Sipariş alındı'], ['accepted', 'Onaylandı'], ['preparing', 'Hazırlanıyor'], ['ready_for_pickup', 'Hazır'], ['out_for_delivery', 'Yolda'], ['delivered', 'Teslim edildi']];
 const NEXT = { pending: [['accepted', 'Onayla'], ['cancelled', 'Reddet']], accepted: [['preparing', 'Hazırlanmaya başla'], ['cancelled', 'İptal et']], preparing: [['ready_for_pickup', 'Hazır'], ['cancelled', 'İptal et']], ready_for_pickup: [['out_for_delivery', 'Yola çıktı'], ['cancelled', 'İptal et']], out_for_delivery: [['delivered', 'Teslim edildi']] };
-const PTABS = [['new', 'Yeni'], ['prep', 'Hazırlanıyor'], ['way', 'Yolda'], ['done', 'Bitenler'], ['menu', 'Menü'], ['earn', 'Kazançlarım'], ['promo', 'Kampanya'], ['courier', 'Kurye']];
+const PTABS = [['sum', 'Özet'], ['new', 'Yeni'], ['prep', 'Hazırlanıyor'], ['way', 'Yolda'], ['done', 'Bitenler'], ['menu', 'Menü'], ['earn', 'Kazançlarım'], ['promo', 'Kampanya'], ['courier', 'Kurye']];
 const pgrp = st => st === 'pending' || st === 'accepted' ? 'new' : st === 'preparing' || st === 'ready_for_pickup' ? 'prep' : st === 'out_for_delivery' ? 'way' : 'done';
 let pnl = { rests: [], rid: null, tab: 'new', orders: [], items: {}, menu: null, seen: null, sound: false, ctx: null, timer: null, lastBeep: 0, wake: null };
 const cur = () => pnl.rests.find(r => r.id === pnl.rid);
@@ -322,9 +332,10 @@ function orderCard(o) {
   const a = o.delivery_address || {}, its = pnl.items[o.id] || [];
   const st = o.status === 'cancelled' ? 'İptal edildi' : (STEPS.find(x => x[0] === o.status) || [0, o.status])[1];
   const addr = [a.address_line1, a.district, a.city].filter(Boolean).join(', ');
-  return `<div class="ocard${o.status === 'pending' ? ' fresh' : ''}"><b>#${esc(String(o.id).slice(0, 6).toUpperCase())}</b> <span class="badge">${esc(st)}</span>
+  return `<div class="ocard${o.status === 'pending' ? ' fresh' : ''}"><b>#${esc(String(o.id).slice(0, 6).toUpperCase())}</b> <span class="badge">${esc(st)}</span>${o.status === 'pending' && ageMin(o.created_at) > 5 ? ` <b style="color:var(--err)">⚠️ ${ageMin(o.created_at)} dk bekliyor</b>` : ''}
 <p class="info">${esc(new Date(o.created_at).toLocaleString('tr-TR'))} · ${esc(PAYS[o.payment_method || o.payment] || 'Kapıda ödeme')} · <b>${tl(o.total_amount)}</b></p>
 <ul class="pit">${its.map(i => `<li>${esc(i.quantity)}× ${esc(i.item_name)}</li>`).join('') || '<li>…</li>'}</ul>
+<button class="ghost" data-print="${esc(o.id)}" style="margin:2px 0 6px">🖨️ Fiş yazdır</button>
 <p class="info">📍 ${esc(addr)}${a.postal_code ? ' · ' + esc(a.postal_code) : ''}</p>
 ${a.phone ? `<p class="info">📞 <a href="tel:${esc(telOf(a.phone))}">${esc(a.phone)}</a></p>` : ''}
 ${a.delivery_instructions ? `<p class="info">📝 ${esc(a.delivery_instructions)}</p>` : ''}
@@ -336,6 +347,7 @@ function renderPanel(keep) {
   const g = k => pnl.orders.filter(o => pgrp(o.status) === k);
   t.innerHTML = PTABS.map(([k, l]) => `<button data-ptab="${k}" class="${pnl.tab === k ? 'on' : ''}">${l}${k !== 'menu' && k !== 'done' && g(k).length ? ` <i>${g(k).length}</i>` : ''}</button>`).join('');
   if (keep && ['menu', 'earn', 'promo', 'courier'].includes(pnl.tab)) return;
+  if (pnl.tab === 'sum') { b.innerHTML = sumHtml(); return; }
   if (pnl.tab === 'promo') { b.innerHTML = promoHtml(); return; }
   if (pnl.tab === 'courier') { b.innerHTML = courierHtml(); return; }
   if (pnl.tab === 'menu') { b.innerHTML = menuHtml(); return; }
@@ -343,6 +355,19 @@ function renderPanel(keep) {
   const list = g(pnl.tab).slice(0, pnl.tab === 'done' ? 20 : 60);
   b.innerHTML = list.length ? list.map(orderCard).join('') : '<div class="empty">Bu bölümde sipariş yok.</div>';
 }
+const ageMin = t => t ? Math.floor((Date.now() - new Date(t).getTime()) / 6e4) : 0;
+function sumHtml() {
+  const r = cur() || {}, t0 = new Date(); t0.setHours(0, 0, 0, 0); const td = pnl.orders.filter(o => new Date(o.created_at) >= t0), ok = td.filter(o => o.status !== 'cancelled' && o.status !== 'rejected'), g = k => pnl.orders.filter(o => pgrp(o.status) === k).length, pr = td.filter(o => o.prep_minutes).map(o => Number(o.prep_minutes));
+  const K = [['Bugünkü sipariş', ok.length], ['Bugünkü ciro', tl(ok.reduce((a, o) => a + (Number(o.total_amount) || 0), 0))], ['Yeni', g('new')], ['Hazırlanıyor', g('prep')], ['Yolda', g('way')], ['İptal / red', td.length - ok.length], ['Ort. hazırlık', pr.length ? Math.round(pr.reduce((a, v) => a + v, 0) / pr.length) + ' dk' : '–'], ['Durum', r.is_open ? '🟢 Açık' : '⚪ Kapalı']];
+  return `<div class="kpi">${K.map(([n, v]) => `<div><span>${n}</span><b>${v}</b></div>`).join('')}</div><p class="hint">Rakamlar yüklenen son siparişlere göre hesaplanır. Ayrıntılı kazanç ve komisyon için Kazançlarım sekmesine bak.</p>`;
+}
+function printOrder(id) {
+  const o = pnl.orders.find(x => x.id === id); if (!o) return; const a = o.delivery_address || {}, its = pnl.items[o.id] || [], r = cur() || {};
+  let el = document.getElementById('rcpt'); if (!el) { el = document.createElement('div'); el.id = 'rcpt'; document.body.appendChild(el); }
+  el.innerHTML = `<h2 style="margin:0">${esc(r.name || 'Akar Yemek')}</h2><p>Sipariş #${esc(String(o.id).slice(0, 6).toUpperCase())}<br>${esc(new Date(o.created_at).toLocaleString('tr-TR'))}</p><hr>${its.map(i => `<div>${esc(i.quantity)}× ${esc(i.item_name)}</div>`).join('')}<hr><b>Toplam: ${tl(o.total_amount)}</b><br>Ödeme: ${esc(PAYS[o.payment_method || o.payment] || 'Kapıda ödeme')}<hr>${esc([a.address_line1, a.district, a.city].filter(Boolean).join(', '))}${a.phone ? '<br>Tel: ' + esc(a.phone) : ''}${a.delivery_instructions ? '<br>Not: ' + esc(a.delivery_instructions) : ''}`;
+  window.print();
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-print]'); if (b) printOrder(b.dataset.print); });
 async function pollPanel() {
   const rid = pnl.rid;
   try {
