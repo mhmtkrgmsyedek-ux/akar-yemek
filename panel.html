@@ -73,11 +73,12 @@ body{background:linear-gradient(#fff4f1,#faf7f4 280px) fixed}
 #rcpt{display:none}
 @media print{body>*:not(#rcpt){display:none!important}#rcpt{display:block!important;font:14px/1.4 monospace;max-width:300px;color:#000}}
 @media(min-width:1000px){.wrap:has(#ptabs){max-width:1240px;display:grid;grid-template-columns:232px minmax(0,1fr);column-gap:28px;align-items:start}.wrap:has(#ptabs)>*{grid-column:2}.wrap:has(#ptabs)>.title,.wrap:has(#ptabs)>:not(#ptabs):not(#pbody){grid-column:1/-1}#ptabs{grid-column:1!important;flex-direction:column;position:sticky;top:78px;overflow:visible;margin:0;background:#fff;border:1px solid #f1e7e1;border-radius:18px;padding:10px}#ptabs button{text-align:left;border:0;padding:11px 14px;font-weight:700}#ptabs button:hover{background:#fff1ef}#ptabs button.on{background:var(--red);color:#fff}}
+#annbar:empty{display:none}#annbar{display:grid;gap:8px;max-width:980px;margin:10px auto 0;padding:0 14px}.ann{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;background:#fff1ef;border:1px solid #f4c9c3;border-radius:14px;padding:11px 14px;font-size:14px}.ann b{display:block}.ann span{color:#6f7378;font-size:13px}.ann button{border:0;background:none;font-size:16px;color:#6f7378;padding:0 2px}
 </style>
 </head>
 <body>
 <header class="bar"><div class="brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M27.1 7.2 26.5 7.9 8.7 46.9 5.1 55.1 5.1 56.4 6.3 57.0 13.7 57.0 14.5 56.8 15.7 55.8 23.5 44.2 24.8 41.7 24.9 41.0 23.7 38.0 23.9 35.4 24.7 33.5 33.5 21.7 35.0 20.9 35.7 21.4 35.7 22.2 28.2 32.7 28.0 33.4 28.2 33.9 28.8 34.1 29.4 33.7 36.7 23.7 37.9 22.5 38.8 22.7 38.9 23.6 31.1 34.8 31.1 35.8 31.5 36.0 32.4 35.6 40.6 24.6 41.5 24.5 41.7 25.4 34.3 36.3 33.9 37.3 34.1 37.7 35.1 37.7 35.9 36.8 41.0 29.7 43.4 26.8 44.4 26.6 44.7 26.9 44.7 27.7 38.9 36.8 34.9 41.9 33.9 42.8 32.4 43.4 29.0 43.6 27.8 44.7 27.4 45.6 28.2 45.9 38.7 45.9 39.4 46.1 39.9 46.7 43.2 55.3 44.0 56.3 45.1 57.0 57.5 57.0 58.5 56.7 58.9 55.6 49.8 34.8 50.0 34.2 51.7 33.5 52.1 32.8 52.1 31.9 42.0 8.9 41.3 7.8 40.1 7.1 36.2 7.0 35.0 7.3 34.0 11.2 33.5 16.4 33.2 16.8 32.8 15.5 32.5 9.5 31.8 7.6 30.8 7.0 28.3 6.8z" fill="#e53d32"/></svg><div>Akar <b>Yemek</b><small>Restoran paneli</small></div></div><div class="who" id="who"></div></header>
-<main id="app"></main>
+<div id="annbar"></div><main id="app"></main>
 <div id="toast"></div>
 <script>
 const SB_URL = 'https://bspjvnxnofkhnocjwsjb.supabase.co';
@@ -335,7 +336,7 @@ function orderCard(o) {
   return `<div class="ocard${o.status === 'pending' ? ' fresh' : ''}"><b>#${esc(String(o.id).slice(0, 6).toUpperCase())}</b> <span class="badge">${esc(st)}</span>${o.status === 'pending' && ageMin(o.created_at) > 5 ? ` <b style="color:var(--err)">⚠️ ${ageMin(o.created_at)} dk bekliyor</b>` : ''}
 <p class="info">${esc(new Date(o.created_at).toLocaleString('tr-TR'))} · ${esc(PAYS[o.payment_method || o.payment] || 'Kapıda ödeme')} · <b>${tl(o.total_amount)}</b></p>
 <ul class="pit">${its.map(i => `<li>${esc(i.quantity)}× ${esc(i.item_name)}</li>`).join('') || '<li>…</li>'}</ul>
-<button class="ghost" data-print="${esc(o.id)}" style="margin:2px 0 6px">🖨️ Fiş yazdır</button>
+<button class="ghost" data-print="${esc(o.id)}" style="margin:2px 0 6px">🖨️ Fiş yazdır</button>${['accepted', 'preparing', 'out_for_delivery'].includes(o.status) ? ((pnl.creqs || []).find(c => c.order_id === o.id && c.status !== 'cancelled') ? ' <span class="badge">🛵 Kurye çağrıldı</span>' : ` <button class="ghost" data-callcourier="${esc(o.id)}" style="margin:2px 0 6px">🛵 Kurye çağır</button>`) : ''}
 <p class="info">📍 ${esc(addr)}${a.postal_code ? ' · ' + esc(a.postal_code) : ''}</p>
 ${a.phone ? `<p class="info">📞 <a href="tel:${esc(telOf(a.phone))}">${esc(a.phone)}</a></p>` : ''}
 ${a.delivery_instructions ? `<p class="info">📝 ${esc(a.delivery_instructions)}</p>` : ''}
@@ -359,7 +360,8 @@ const ageMin = t => t ? Math.floor((Date.now() - new Date(t).getTime()) / 6e4) :
 function sumHtml() {
   const r = cur() || {}, t0 = new Date(); t0.setHours(0, 0, 0, 0); const td = pnl.orders.filter(o => new Date(o.created_at) >= t0), ok = td.filter(o => o.status !== 'cancelled' && o.status !== 'rejected'), g = k => pnl.orders.filter(o => pgrp(o.status) === k).length, pr = td.filter(o => o.prep_minutes).map(o => Number(o.prep_minutes));
   const K = [['Bugünkü sipariş', ok.length], ['Bugünkü ciro', tl(ok.reduce((a, o) => a + (Number(o.total_amount) || 0), 0))], ['Yeni', g('new')], ['Hazırlanıyor', g('prep')], ['Yolda', g('way')], ['İptal / red', td.length - ok.length], ['Ort. hazırlık', pr.length ? Math.round(pr.reduce((a, v) => a + v, 0) / pr.length) + ' dk' : '–'], ['Durum', r.is_open ? '🟢 Açık' : '⚪ Kapalı']];
-  return `<div class="kpi">${K.map(([n, v]) => `<div><span>${n}</span><b>${v}</b></div>`).join('')}</div><p class="hint">Rakamlar yüklenen son siparişlere göre hesaplanır. Ayrıntılı kazanç ve komisyon için Kazançlarım sekmesine bak.</p>`;
+  const hrs = 'open_time' in r ? `<div class="mf"><b>🕒 Çalışma saatleri</b><p class="hint">Saat dışında restoran müşteri ekranında kapalı görünür. Boş bırakırsan saat sınırı uygulanmaz.</p><div class="prow"><input id="oh1" type="time" value="${esc((r.open_time || '').slice(0, 5))}"><input id="oh2" type="time" value="${esc((r.close_time || '').slice(0, 5))}"><button class="go" data-savehours>Kaydet</button></div></div>` : '';
+  return `<div class="kpi">${K.map(([n, v]) => `<div><span>${n}</span><b>${v}</b></div>`).join('')}</div>${hrs}<p class="hint">Rakamlar yüklenen son siparişlere göre hesaplanır. Ayrıntılı kazanç ve komisyon için Kazançlarım sekmesine bak.</p>`;
 }
 function printOrder(id) {
   const o = pnl.orders.find(x => x.id === id); if (!o) return; const a = o.delivery_address || {}, its = pnl.items[o.id] || [], r = cur() || {};
@@ -583,6 +585,10 @@ document.addEventListener('keydown', e => {
 });
 
 (async () => { await fresh(); who(); sess ? start() : showLogin(); })();
+(async function () { try { const L = await api('announcements?select=*&target=in.(all,restaurants)&order=created_at.desc&limit=3'); let hid = []; try { hid = JSON.parse(sessionStorage.getItem('annhid') || '[]'); } catch (e) {} const el = document.getElementById('annbar'); if (!el) return; el.innerHTML = L.filter(x => !hid.includes(x.id)).map(x => `<div class="ann"><div><b>${esc(x.title)}</b>${x.body ? `<span>${esc(x.body)}</span>` : ''}</div><button data-annx="${esc(x.id)}" aria-label="Kapat">✕</button></div>`).join(''); } catch (e) {} })();
+document.addEventListener('click', e => { const b = e.target.closest('[data-annx]'); if (!b) return; try { const h = JSON.parse(sessionStorage.getItem('annhid') || '[]'); h.push(b.dataset.annx); sessionStorage.setItem('annhid', JSON.stringify(h)); } catch (x) {} b.closest('.ann').remove(); });
+document.addEventListener('click', async e => { if (!e.target.closest('[data-savehours]')) return; const a = $('#oh1').value || null, z = $('#oh2').value || null; if (!a !== !z) return toast('Açılış ve kapanış saatini birlikte gir'); try { await patchRow('restaurants?id=eq.' + encodeURIComponent(pnl.rid), { open_time: a, close_time: z }); const r = cur(); r.open_time = a; r.close_time = z; toast('Saatler kaydedildi ✓'); } catch (x) { toast(x.message); } });
+document.addEventListener('click', async e => { const b = e.target.closest('[data-callcourier]'); if (!b) return; if (!confirm('Bu sipariş için kurye çağrılsın mı? Kurye ücreti uygulanır.')) return; b.disabled = true; await courierRpc('request_courier_for_order', { p_order: b.dataset.callcourier }, 'Kurye çağrıldı ✓'); });
 </script>
 </body>
 </html>
