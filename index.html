@@ -656,6 +656,7 @@ function authView(mode) {
 <label for="pw">Şifre (en az 8 karakter, harf ve rakam)</label><input id="pw" type="password" autocomplete="${s ? 'new-password' : 'current-password'}" autocapitalize="none" autocorrect="off" enterkeyhint="go">
 <div id="aerr" class="warn" hidden></div>
 ${s ? `<label class="radio" style="align-items:flex-start"><input type="checkbox" id="kv"> <span>Kişisel verilerimin işlenmesine ilişkin <button type="button" class="ghost" style="padding:0;border:0;text-decoration:underline" data-page="kvkk">Aydınlatma Metni</button>’ni ve <button type="button" class="ghost" style="padding:0;border:0;text-decoration:underline" data-page="terms">Kullanım Koşulları</button>’nı okudum, kabul ediyorum.</span></label>` : ''}<button class="go" data-submit="${mode}">${s ? 'Kayıt ol' : 'Giriş yap'}</button>
+${s ? '' : '<button class="sw" data-rstforgot>Şifremi unuttum</button>'}
 <button class="sw" data-mode="${s ? 'login' : 'signup'}">${s ? 'Hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}</button></div></div></div>`;
   scrollTo(0, 0);
 }
@@ -784,6 +785,61 @@ async function place() {
   } catch (e) { el.textContent = (e instanceof TypeError ? 'Bağlantı hatası. Siparişin oluşup oluşmadığını “Siparişlerim” bölümünden kontrol et, sonra tekrar dene.' : e.message); btn.disabled = false; }
   finally { placing = false; }
 }
+
+/* ---------- şifremi unuttum (e-posta kodu) ---------- */
+let rstEmail = '', rstAt = 0, rstBusy = false;
+const rstShell = (inner) => `<div class="wrap"><div class="narrow"><div class="panel">${inner}</div></div></div>`;
+function rstForgot() {
+  $('#app').innerHTML = rstShell(`<button class="back" data-mode="login">← Geri</button><h2 class="title">Şifremi unuttum</h2><p class="info">Hesabının e-posta adresini yaz, sana 6 haneli bir kod gönderelim.</p>
+<label for="rse">E-posta</label><input id="rse" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
+<p id="rserr" class="err" hidden style="margin:12px 0 0"></p><button class="go" data-rstsend>Kod gönder</button>`);
+  const i = $('#rse'); if (i) i.focus();
+}
+function rstReset(note) {
+  $('#app').innerHTML = rstShell(`<button class="back" data-mode="login">← Geri</button><h2 class="title">Yeni şifre belirle</h2><p class="info">${esc(note || '')}<b>${esc(rstEmail)}</b> adresine gelen kodu ve yeni şifreni yaz. Gelmediyse spam klasörüne bak.</p>
+<label for="rsc">Doğrulama kodu</label><input id="rsc" inputmode="numeric" autocomplete="one-time-code" maxlength="10">
+<label for="rsp">Yeni şifre (en az 8 karakter, harf ve rakam)</label><input id="rsp" type="password" autocomplete="new-password" autocapitalize="none">
+<p id="rserr" class="err" hidden style="margin:12px 0 0"></p><button class="go" data-rstset>Şifreyi kaydet</button><button class="sw" data-rstresend>Kodu tekrar gönder</button>`);
+  const i = $('#rsc'); if (i) i.focus();
+}
+async function rstSend(resend) {
+  if (rstBusy) return;
+  const el = $('#rserr'); if (el) el.hidden = false;
+  if (!resend) rstEmail = ($('#rse').value || '').trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(rstEmail)) { el.textContent = 'Geçerli bir e-posta adresi yaz.'; return; }
+  const wait = Math.ceil((rstAt - Date.now()) / 1000);
+  if (wait > 0) { el.textContent = 'Yeni kod için ' + wait + ' saniye bekle.'; return; }
+  rstBusy = true; el.textContent = 'Gönderiliyor…';
+  try { await auth('recover', { email: rstEmail }); rstAt = Date.now() + 60000; }
+  catch (e) { if (/rate limit|too many|security purposes/i.test(String(e.message))) { el.textContent = 'Çok fazla deneme yapıldı. Bir dakika bekleyip tekrar dene.'; rstBusy = false; return; } }
+  rstBusy = false;
+  // E-posta kayıtlı olsun olmasın aynı mesaj gösterilir (hesap varlığı sızdırılmaz)
+  rstReset(resend ? 'Yeni kod gönderildi (hesap varsa). ' : 'Hesap varsa kod gönderildi. ');
+}
+async function rstSet() {
+  if (rstBusy) return;
+  const el = $('#rserr'), token = ($('#rsc').value || '').replace(/\s+/g, ''), pw = $('#rsp').value;
+  el.hidden = false;
+  if (!/^\d{4,10}$/.test(token)) { el.textContent = 'E-postana gelen kodu rakamlarla yaz.'; return; }
+  if (pw.length < 8 || !/[A-Za-z]/.test(pw) || !/\d/.test(pw)) { el.textContent = 'Şifre en az 8 karakter olmalı ve hem harf hem rakam içermeli.'; return; }
+  rstBusy = true; el.textContent = 'Bekle…';
+  try {
+    const j = await auth('verify', { type: 'recovery', email: rstEmail, token });
+    if (!j.access_token) throw new Error('Kod doğrulanamadı');
+    const r = await fetch(SB_URL + '/auth/v1/user', { method: 'PUT', headers: { apikey: SB_KEY, 'Content-Type': 'application/json', Authorization: 'Bearer ' + j.access_token }, body: JSON.stringify({ password: pw }) });
+    if (!r.ok) { const x = await r.json().catch(() => ({})); throw new Error(x.msg || x.message || 'Şifre kaydedilemedi'); }
+    rstBusy = false; save(toSess(j)); who(); afterLogin();
+    toast('Şifren güncellendi'); return;
+  } catch (e) { el.textContent = /same|different/i.test(String(e.message)) ? 'Yeni şifre eskisinden farklı olmalı.' : 'Kod hatalı, süresi dolmuş veya şifre kabul edilmedi. Yeni kod isteyebilirsin.'; }
+  rstBusy = false;
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-rstforgot]')) rstForgot();
+  else if (e.target.closest('[data-rstsend]')) rstSend(false);
+  else if (e.target.closest('[data-rstresend]')) rstSend(true);
+  else if (e.target.closest('[data-rstset]')) rstSet();
+});
+document.addEventListener('keydown', e => { if (e.key !== 'Enter') return; if (e.target.id === 'rse') rstSend(false); else if (e.target.id === 'rsc' || e.target.id === 'rsp') rstSet(); });
 
 /* ---------- olaylar ---------- */
 document.addEventListener('input', e => { if (e.target.id === 'q') fillHome(); });
