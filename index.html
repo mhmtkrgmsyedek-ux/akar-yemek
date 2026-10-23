@@ -295,7 +295,8 @@ try {
     if (isId(c.rid) && Object.keys(lines).length) cart = { rid: c.rid, lines };
   }
 } catch (e) {}
-const saveCart = () => { try { localStorage.setItem('cart', JSON.stringify(cart)); } catch (e) {} };
+let orderToken = null; // aynı sipariş denemesi için sabit anahtar (çift sipariş koruması)
+const saveCart = () => { orderToken = null; try { localStorage.setItem('cart', JSON.stringify(cart)); } catch (e) {} };
 const cartLines = () => Object.entries(cart.lines);
 const cartCount = () => cartLines().reduce((s, [, l]) => s + l.q, 0);
 const cartSub = () => cartLines().reduce((s, [, l]) => s + l.q * Number(l.price), 0);
@@ -429,7 +430,7 @@ async function favView() {
   const L = vis().filter(r => favs.includes(r.id));
   $('#app').innerHTML = `<div class="wrap"><div class="sectionhead"><div><h2>Favorilerim</h2><p>Kalbini bıraktığın restoranlar</p></div></div><section class="grid">${L.length ? L.map(restCard).join('') : '<div class="empty">Henüz favorin yok. Restoran kartındaki 🤍 simgesine dokun.</div>'}</section></div>`;
 }
-const STEPS = [['pending', 'Sipariş alındı'], ['accepted', 'Onaylandı'], ['preparing', 'Hazırlanıyor'], ['out_for_delivery', 'Yolda'], ['delivered', 'Teslim edildi']];
+const STEPS = [['pending', 'Sipariş alındı'], ['accepted', 'Onaylandı'], ['preparing', 'Hazırlanıyor'], ['ready_for_pickup', 'Hazır, kurye bekleniyor'], ['out_for_delivery', 'Yolda'], ['delivered', 'Teslim edildi']];
 async function ordersView() {
   await ensureLoaded(); setTab('orders');
   if (!sess) return authView('login');
@@ -654,7 +655,7 @@ function authView(mode) {
 <div class="panel"><label for="em">E-posta</label><input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next">
 <label for="pw">Şifre (en az 8 karakter, harf ve rakam)</label><input id="pw" type="password" autocomplete="${s ? 'new-password' : 'current-password'}" autocapitalize="none" autocorrect="off" enterkeyhint="go">
 <div id="aerr" class="warn" hidden></div>
-<button class="go" data-submit="${mode}">${s ? 'Kayıt ol' : 'Giriş yap'}</button>
+${s ? `<label class="radio" style="align-items:flex-start"><input type="checkbox" id="kv"> <span>Kişisel verilerimin işlenmesine ilişkin <button type="button" class="ghost" style="padding:0;border:0;text-decoration:underline" data-page="kvkk">Aydınlatma Metni</button>’ni ve <button type="button" class="ghost" style="padding:0;border:0;text-decoration:underline" data-page="terms">Kullanım Koşulları</button>’nı okudum, kabul ediyorum.</span></label>` : ''}<button class="go" data-submit="${mode}">${s ? 'Kayıt ol' : 'Giriş yap'}</button>
 <button class="sw" data-mode="${s ? 'login' : 'signup'}">${s ? 'Hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}</button></div></div></div>`;
   scrollTo(0, 0);
 }
@@ -678,6 +679,7 @@ async function doAuth(mode) {
   el.hidden = false;
   if (!email || !password) { el.textContent = 'E-posta ve şifreyi yaz.'; return; }
   if (Date.now() < authLock) { el.textContent = 'Çok fazla deneme yaptın. ' + Math.ceil((authLock - Date.now()) / 1000) + ' saniye sonra tekrar dene.'; return; }
+  if (mode === 'signup' && !($('#kv') && $('#kv').checked)) { el.textContent = 'Devam etmek için Aydınlatma Metni ve Kullanım Koşulları’nı onaylamalısın.'; return; }
   if (mode === 'signup' && (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password))) { el.textContent = 'Şifre en az 8 karakter olmalı ve hem harf hem rakam içermeli.'; return; }
   authBusy = true; if (btn) btn.disabled = true; el.textContent = 'Bekle…';
   try {
@@ -750,7 +752,9 @@ function checkout() {
   scrollTo(0, 0);
 }
 
+let placing = false;
 async function place() {
+  if (placing) return;
   const r = rests[cart.rid];
   if (!r || !cartCount()) return home();
   const v = id => $('#' + id).value.trim(), el = $('#cerr'), btn = $('[data-place]');
@@ -760,21 +764,25 @@ async function place() {
   if (r.city && norm(r.city) !== norm(addr.city)) { el.textContent = r.name + ' yalnızca ' + r.city + ' şehrine teslimat yapıyor.'; return; }
   if (!serves(r, addr.city, addr.district)) { el.textContent = r.name + ' yalnızca ' + r.district + ' ilçesine' + ((r.delivery_districts || []).length ? ' ve ' + r.delivery_districts.join(', ') + ' ilçelerine' : '') + ' teslimat yapıyor.'; return; }
   setAddr(addr);
-  btn.disabled = true; el.textContent = 'Sipariş gönderiliyor…';
+  placing = true; btn.disabled = true; el.textContent = 'Sipariş gönderiliyor…';
   const items = cartLines().map(([menu_item_id, l]) => ({ menu_item_id, quantity: l.q }));
   try {
     await fresh(); if (!sess) { btn.disabled = false; return authView('login'); }
     const base = { p_customer_id: sess.uid, p_restaurant_id: cart.rid, p_delivery_address: addr, p_items: items };
     const post = (fn, b) => fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: hdr(), body: JSON.stringify(b) });
     const pay = 'cash'; // şimdilik yalnızca kapıda ödeme
-    let res = await post('place_order_v2', { ...base, p_coupon: coupon ? coupon.code : null, p_payment: pay });
+    // v3: müşteri kimliği sunucuda belirlenir + aynı anahtarla tekrar gelen istek yeni sipariş oluşturmaz
+    orderToken = orderToken || (window.crypto && crypto.randomUUID ? crypto.randomUUID() : null);
+    let res = orderToken ? await post('place_order_v3', { p_restaurant_id: cart.rid, p_delivery_address: addr, p_items: items, p_coupon: coupon ? coupon.code : null, p_payment: pay, p_client_token: orderToken }) : null;
+    if (!res || res.status === 404) res = await post('place_order_v2', { ...base, p_coupon: coupon ? coupon.code : null, p_payment: pay });
     const j = await res.json().catch(() => ({}));
     if (res.status === 401) { save(null); who(); return authView('login'); }
     if (!res.ok) throw new Error(j.message || 'Hata ' + res.status);
-    clearCart(); updateCart(); coupon = null; try { Notification.requestPermission(); } catch (e) {}
+    orderToken = null; clearCart(); updateCart(); coupon = null; try { Notification.requestPermission(); } catch (e) {}
     $('#app').innerHTML = `<div class="wrap"><div class="narrow"><div class="ok"><div class="tick">✓</div><h2 class="title">Siparişin alındı</h2><p>Toplam: <b>${tl(j.total_amount)}</b></p><p class="note">Sipariş no: ${esc(j.order_id)}</p></div><button class="go" data-home>Restoranlara dön</button></div></div>`;
     scrollTo(0, 0);
-  } catch (e) { el.textContent = e.message; btn.disabled = false; }
+  } catch (e) { el.textContent = (e instanceof TypeError ? 'Bağlantı hatası. Siparişin oluşup oluşmadığını “Siparişlerim” bölümünden kontrol et, sonra tekrar dene.' : e.message); btn.disabled = false; }
+  finally { placing = false; }
 }
 
 /* ---------- olaylar ---------- */
@@ -982,7 +990,7 @@ async function panelStatus(id, to) {
 }
 async function panelOpen() {
   const r = rests[pnl.rid], nv = r.is_open === false;
-  try { await patchRow('restaurants?id=eq.' + encodeURIComponent(r.id), { is_open: nv }); r.is_open = nv; drawPanel(); renderPanel(); toast(nv ? 'Restoran açıldı' : 'Restoran kapatıldı'); }
+  try { await patchRow('restaurants?id=eq.' + encodeURIComponent(r.id), { is_paused: !nv }); r.is_paused = !nv; r.is_open = !!r.is_active && !r.is_paused; drawPanel(); renderPanel(); toast(nv ? 'Restoran açıldı' : 'Restoran kapatıldı'); }
   catch (e) { toast(e.message); }
 }
 function panelSound() {
