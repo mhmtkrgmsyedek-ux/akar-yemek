@@ -304,7 +304,6 @@ function showLogin() {
 <label for="pw">Şifre</label><input id="pw" type="password" autocomplete="current-password" autocapitalize="none">
 <p id="aerr" class="err" hidden style="margin:12px 0 0"></p>
 <button class="go" data-login>Giriş yap</button>
-<button class="sw" data-rstforgot>Şifremi unuttum</button>
 <button class="sw" data-rsignup>Kurye olmak mı istiyorsun? Kayıt ol</button></div></div>`;
 }
 let authBusy = false, authFails = 0, authLock = 0;
@@ -414,9 +413,6 @@ function waitView() {
 }
 const ageMin = t => t ? Math.floor((Date.now() - new Date(t).getTime()) / 6e4) : 0;
 const mapUrl = a => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(a || '');
-// Müşteri haritada konum işaretlediyse yol tarifi doğrudan o noktaya açılır; yoksa yazılı adres aranır
-const hasPin = a => !!a && a.lat != null && a.lng != null && isFinite(a.lat) && isFinite(a.lng) && Math.abs(Number(a.lat)) <= 90 && Math.abs(Number(a.lng)) <= 180;
-const pinUrl = (a, addr) => hasPin(a) ? 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(Number(a.lat) + ',' + Number(a.lng)) + '&travelmode=driving' : mapUrl(addr);
 function draw() { const on = !!pnl.me.is_online; $('#app').innerHTML = `<div class="wrap" id="cur"><h2 class="title">Merhaba, ${esc(pnl.me.full_name)}</h2>${'is_online' in pnl.me ? `<button class="${on ? 'gr' : 'ghost'} big" data-konl>${on ? '🟢 Çevrimiçisin · çevrimdışı olmak için dokun' : '⚪ Çevrimdışısın · iş almak için çevrimiçi ol'}</button>` : ''}<div id="cbody"></div><div class="ptabs" id="ctabs"></div></div>`; renderC(); }
 async function poll() {
   const sel = 'courier_requests?select=*,restaurants(name,address,phone)';
@@ -437,7 +433,7 @@ function ordCard(o) {
 <p class="info">🏪 ${esc(o.restaurant_address || '')}${o.restaurant_phone ? ` · <a href="tel:${esc(telOf(o.restaurant_phone))}">${esc(o.restaurant_phone)}</a>` : ''}</p>
 <p class="info">📍 ${esc(addr)}${a.phone ? `<br>📞 <a href="tel:${esc(telOf(a.phone))}">${esc(a.phone)}</a>` : ''}${a.delivery_instructions ? `<br>📝 ${esc(a.delivery_instructions)}` : ''}</p>
 ${o.est_fee ? `<p class="info">Kazancın: <b>${tl(o.est_fee)}</b></p>` : ''}<p class="info">${cash ? `💵 Müşteriden tahsil edilecek: <b>${tl(o.total_amount)}</b>` : '💳 Ödeme alındı (kart)'}</p>
-<div class="prow">${o.restaurant_address ? `<a class="ghost" target="_blank" rel="noopener noreferrer" href="${mapUrl(o.restaurant_address)}">🧭 Restorana git</a>` : ''}${addr ? `<a class="ghost" target="_blank" rel="noopener noreferrer" href="${pinUrl(a, addr)}">🧭 Müşteriye git${hasPin(a) ? ' 📍' : ''}</a>` : ''}</div>
+<div class="prow">${o.restaurant_address ? `<a class="ghost" target="_blank" rel="noopener noreferrer" href="${mapUrl(o.restaurant_address)}">🧭 Restorana git</a>` : ''}${addr ? `<a class="ghost" target="_blank" rel="noopener noreferrer" href="${mapUrl(addr)}">🧭 Müşteriye git</a>` : ''}</div>
 ${act ? `<button class="go big" data-kos="${act[0]}" data-oid="${esc(o.id)}">${act[1]}</button>` : '<p class="info">Restoranın "Hazırlanmaya başla" demesi bekleniyor.</p>'}</div>`;
 }
 function card(c) {
@@ -489,74 +485,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.target.id === 'sem' || e.target.id === 'spw')) { e.preventDefault(); doSignup(); }
   if (e.key === 'Enter' && e.target.id === 'cd') { e.preventDefault(); verifyCode(); }
 });
-/* ---------- şifremi unuttum (e-posta kodu) ---------- */
-let rstEmail = '', rstAt = 0, rstBusy = false;
-const rstShell = (inner) => `<div class="wrap"><div class="login card">${inner}</div></div>`;
-let rstTok = null;
-// E-postadaki bağlantıya tıklanırsa (adreste #access_token=...&type=recovery) doğrudan yeni şifre formu açılır
-function rstHash() {
-  const h = new URLSearchParams(location.hash.replace(/^#/, ''));
-  if (h.get('type') !== 'recovery' || !h.get('access_token')) return false;
-  rstTok = { access_token: h.get('access_token'), refresh_token: h.get('refresh_token') || '', expires_in: Number(h.get('expires_in')) || 3600 };
-  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
-  $('#app').innerHTML = rstShell(`<h2 class="title">Yeni şifre belirle</h2><label for="rsp">Yeni şifre (en az 8 karakter, harf ve rakam)</label><input id="rsp" type="password" autocomplete="new-password" autocapitalize="none"><p id="rserr" class="err" hidden style="margin:12px 0 0"></p><button class="go" data-rstset>Şifreyi kaydet</button>`);
-  return true;
-}
-function rstForgot() {
-  $('#app').innerHTML = rstShell(`<button class="ghost" data-rlogin>← Girişe dön</button><h2 class="title">Şifremi unuttum</h2><p class="info">Hesabının e-posta adresini yaz, sana 6 haneli bir kod gönderelim.</p>
-<label for="rse">E-posta</label><input id="rse" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
-<p id="rserr" class="err" hidden style="margin:12px 0 0"></p><button class="go" data-rstsend>Kod gönder</button>`);
-  const i = $('#rse'); if (i) i.focus();
-}
-function rstReset(note) {
-  $('#app').innerHTML = rstShell(`<button class="ghost" data-rlogin>← Girişe dön</button><h2 class="title">Yeni şifre belirle</h2><p class="info">${esc(note || '')}<b>${esc(rstEmail)}</b> adresine gelen kodu ve yeni şifreni yaz. Gelmediyse spam klasörüne bak.</p>
-<label for="rsc">Doğrulama kodu</label><input id="rsc" inputmode="numeric" autocomplete="one-time-code" maxlength="10">
-<label for="rsp">Yeni şifre (en az 8 karakter, harf ve rakam)</label><input id="rsp" type="password" autocomplete="new-password" autocapitalize="none">
-<p id="rserr" class="err" hidden style="margin:12px 0 0"></p><button class="go" data-rstset>Şifreyi kaydet</button><button class="sw" data-rstresend>Kodu tekrar gönder</button>`);
-  const i = $('#rsc'); if (i) i.focus();
-}
-async function rstSend(resend) {
-  if (rstBusy) return;
-  const el = $('#rserr'); if (el) el.hidden = false;
-  if (!resend) rstEmail = ($('#rse').value || '').trim().toLowerCase();
-  if (!/^\S+@\S+\.\S+$/.test(rstEmail)) { el.textContent = 'Geçerli bir e-posta adresi yaz.'; return; }
-  const wait = Math.ceil((rstAt - Date.now()) / 1000);
-  if (wait > 0) { el.textContent = 'Yeni kod için ' + wait + ' saniye bekle.'; return; }
-  rstBusy = true; el.textContent = 'Gönderiliyor…';
-  try { await authReq('recover?redirect_to=' + encodeURIComponent(location.origin + location.pathname), { email: rstEmail }); rstAt = Date.now() + 60000; }
-  catch (e) { if (/rate limit|too many|security purposes/i.test(String(e.message))) { el.textContent = 'Çok fazla deneme yapıldı. Bir dakika bekleyip tekrar dene.'; rstBusy = false; return; } }
-  rstBusy = false;
-  // E-posta kayıtlı olsun olmasın aynı mesaj gösterilir (hesap varlığı sızdırılmaz)
-  rstReset(resend ? 'Yeni kod gönderildi (hesap varsa). ' : 'Hesap varsa kod gönderildi. ');
-}
-async function rstSet() {
-  if (rstBusy) return;
-  const el = $('#rserr'), token = rstTok ? '' : ($('#rsc').value || '').replace(/\s+/g, ''), pw = $('#rsp').value;
-  el.hidden = false;
-  if (!rstTok && !/^\d{4,10}$/.test(token)) { el.textContent = 'E-postana gelen kodu rakamlarla yaz.'; return; }
-  if (pw.length < 8 || !/[A-Za-z]/.test(pw) || !/\d/.test(pw)) { el.textContent = 'Şifre en az 8 karakter olmalı ve hem harf hem rakam içermeli.'; return; }
-  rstBusy = true; el.textContent = 'Bekle…';
-  try {
-    let j;
-    if (rstTok) { const u = await fetch(SB_URL + '/auth/v1/user', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + rstTok.access_token } }); const uj = await u.json().catch(() => ({})); if (!u.ok || !uj.id) throw new Error('Bağlantının süresi dolmuş'); j = { ...rstTok, user: uj }; }
-    else j = await authReq('verify', { type: 'recovery', email: rstEmail, token });
-    if (!j.access_token) throw new Error('Kod doğrulanamadı');
-    const r = await fetch(SB_URL + '/auth/v1/user', { method: 'PUT', headers: { apikey: SB_KEY, 'Content-Type': 'application/json', Authorization: 'Bearer ' + j.access_token }, body: JSON.stringify({ password: pw }) });
-    if (!r.ok) { const x = await r.json().catch(() => ({})); throw new Error(x.msg || x.message || 'Şifre kaydedilemedi'); }
-    rstBusy = false; rstTok = null; save(toSess(j)); who(); await start();
-    toast('Şifren güncellendi'); return;
-  } catch (e) { el.textContent = /same|different/i.test(String(e.message)) ? 'Yeni şifre eskisinden farklı olmalı.' : 'Kod hatalı, süresi dolmuş veya şifre kabul edilmedi. Yeni kod isteyebilirsin.'; }
-  rstBusy = false;
-}
-document.addEventListener('click', e => {
-  if (e.target.closest('[data-rstforgot]')) rstForgot();
-  else if (e.target.closest('[data-rstsend]')) rstSend(false);
-  else if (e.target.closest('[data-rstresend]')) rstSend(true);
-  else if (e.target.closest('[data-rstset]')) rstSet();
-});
-document.addEventListener('keydown', e => { if (e.key !== 'Enter') return; if (e.target.id === 'rse') rstSend(false); else if (e.target.id === 'rsc' || e.target.id === 'rsp') rstSet(); });
-
-(async () => { await fresh(); who(); if (rstHash()) return; sess ? start() : showLogin(); })();
+(async () => { await fresh(); who(); sess ? start() : showLogin(); })();
 async function loadAnn() { if (typeof sess === 'undefined' || !sess) return; try { const L = await api('announcements?select=*&is_active=eq.true&target=in.(all,couriers)&order=created_at.desc&limit=3'); let hid = []; try { hid = JSON.parse(sessionStorage.getItem('annhid') || '[]'); } catch (e) {} const el = document.getElementById('annbar'); if (!el) return; el.innerHTML = L.filter(x => !hid.includes(x.id)).map(x => `<div class="ann"><div><b>${esc(x.title)}</b>${x.body ? `<span>${esc(x.body)}</span>` : ''}</div><button data-annx="${esc(x.id)}" aria-label="Kapat">✕</button></div>`).join(''); } catch (e) {} }
 loadAnn(); setInterval(loadAnn, 30000);
 document.addEventListener('click', e => { const b = e.target.closest('[data-annx]'); if (!b) return; try { const h = JSON.parse(sessionStorage.getItem('annhid') || '[]'); h.push(b.dataset.annx); sessionStorage.setItem('annhid', JSON.stringify(h)); } catch (x) {} b.closest('.ann').remove(); });

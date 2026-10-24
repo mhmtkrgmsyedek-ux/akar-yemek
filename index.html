@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#202124">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://bspjvnxnofkhnocjwsjb.supabase.co https://turkiyeapi.dev; base-uri 'none'; object-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://bspjvnxnofkhnocjwsjb.supabase.co https://turkiyeapi.dev; base-uri 'none'; object-src 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Akar Yemek</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap" rel="stylesheet">
@@ -216,7 +216,7 @@ select{font:inherit;font-size:16px;width:100%;padding:12px;border:1px solid var(
 </header>
 <div id="annbar"></div><main id="app"></main>
 <nav class="tabs" id="tabs" aria-label="Alt menü"><button data-tab="home" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>Ana sayfa</button><button data-tab="fav"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>Favoriler</button><button data-tab="orders"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg>Siparişlerim</button><button data-tab="promo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8zM7.5 8.5h.01"/></svg>Kampanyalar</button><button data-tab="acc"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>Hesabım</button></nav>
-<footer><nav class="flinks" aria-label="Alt bağlantılar"><button type="button" data-page="help">Yardım Merkezi</button><button type="button" data-page="support">Destek</button><button type="button" data-page="terms">Kullanım Koşulları</button><button type="button" data-page="faq">S.S.S. ve İşlem Rehberi</button><button type="button" data-page="cookies">Çerez Politikası</button><button type="button" data-page="contact">İletişim</button><button type="button" data-page="partner">İş Ortağımız Olun</button><button type="button" data-page="about">Kurumsal Site</button><button type="button" data-page="kvkk">Aydınlatma Metni</button><button type="button" data-page="privacy">Kişisel Verilerin Korunması ve İşlenmesi ve Gizlilik Politikası</button><button type="button" data-page="bts">Bilgi Toplumu Hizmetleri</button><button type="button" data-page="app">Akar Yemek app indir</button><button type="button" data-page="cities">Hizmet bölgemiz</button></nav><div class="foot"><div><div class="brand"><span class="logo"><svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true"><path d="M27.1 7.2 26.5 7.9 8.7 46.9 5.1 55.1 5.1 56.4 6.3 57.0 13.7 57.0 14.5 56.8 15.7 55.8 23.5 44.2 24.8 41.7 24.9 41.0 23.7 38.0 23.9 35.4 24.7 33.5 33.5 21.7 35.0 20.9 35.7 21.4 35.7 22.2 28.2 32.7 28.0 33.4 28.2 33.9 28.8 34.1 29.4 33.7 36.7 23.7 37.9 22.5 38.8 22.7 38.9 23.6 31.1 34.8 31.1 35.8 31.5 36.0 32.4 35.6 40.6 24.6 41.5 24.5 41.7 25.4 34.3 36.3 33.9 37.3 34.1 37.7 35.1 37.7 35.9 36.8 41.0 29.7 43.4 26.8 44.4 26.6 44.7 26.9 44.7 27.7 38.9 36.8 34.9 41.9 33.9 42.8 32.4 43.4 29.0 43.6 27.8 44.7 27.4 45.6 28.2 45.9 38.7 45.9 39.4 46.1 39.9 46.7 43.2 55.3 44.0 56.3 45.1 57.0 57.5 57.0 58.5 56.7 58.9 55.6 49.8 34.8 50.0 34.2 51.7 33.5 52.1 32.8 52.1 31.9 42.0 8.9 41.3 7.8 40.1 7.1 36.2 7.0 35.0 7.3 34.0 11.2 33.5 16.4 33.2 16.8 32.8 15.5 32.5 9.5 31.8 7.6 30.8 7.0 28.3 6.8z" fill="var(--red)"/></svg></span>Akar <span>Yemek</span></div><p>Sevdiğin restoranlardan, kapına kadar.</p></div><small>© 2026 Akar Yemek</small></div></footer>
+<footer><nav class="flinks" aria-label="Alt bağlantılar"><button type="button" data-page="help">Yardım Merkezi</button><button type="button" data-page="terms">Kullanım Koşulları</button><button type="button" data-page="faq">S.S.S. ve İşlem Rehberi</button><button type="button" data-page="cookies">Çerez Politikası</button><button type="button" data-page="contact">İletişim</button><button type="button" data-page="partner">İş Ortağımız Olun</button><button type="button" data-page="about">Kurumsal Site</button><button type="button" data-page="kvkk">Aydınlatma Metni</button><button type="button" data-page="privacy">Kişisel Verilerin Korunması ve İşlenmesi ve Gizlilik Politikası</button><button type="button" data-page="bts">Bilgi Toplumu Hizmetleri</button><button type="button" data-page="app">Akar Yemek app indir</button><button type="button" data-page="cities">Türkiye'deki tüm şehirler</button></nav><div class="foot"><div><div class="brand"><span class="logo"><svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true"><path d="M27.1 7.2 26.5 7.9 8.7 46.9 5.1 55.1 5.1 56.4 6.3 57.0 13.7 57.0 14.5 56.8 15.7 55.8 23.5 44.2 24.8 41.7 24.9 41.0 23.7 38.0 23.9 35.4 24.7 33.5 33.5 21.7 35.0 20.9 35.7 21.4 35.7 22.2 28.2 32.7 28.0 33.4 28.2 33.9 28.8 34.1 29.4 33.7 36.7 23.7 37.9 22.5 38.8 22.7 38.9 23.6 31.1 34.8 31.1 35.8 31.5 36.0 32.4 35.6 40.6 24.6 41.5 24.5 41.7 25.4 34.3 36.3 33.9 37.3 34.1 37.7 35.1 37.7 35.9 36.8 41.0 29.7 43.4 26.8 44.4 26.6 44.7 26.9 44.7 27.7 38.9 36.8 34.9 41.9 33.9 42.8 32.4 43.4 29.0 43.6 27.8 44.7 27.4 45.6 28.2 45.9 38.7 45.9 39.4 46.1 39.9 46.7 43.2 55.3 44.0 56.3 45.1 57.0 57.5 57.0 58.5 56.7 58.9 55.6 49.8 34.8 50.0 34.2 51.7 33.5 52.1 32.8 52.1 31.9 42.0 8.9 41.3 7.8 40.1 7.1 36.2 7.0 35.0 7.3 34.0 11.2 33.5 16.4 33.2 16.8 32.8 15.5 32.5 9.5 31.8 7.6 30.8 7.0 28.3 6.8z" fill="var(--red)"/></svg></span>Akar <span>Yemek</span></div><p>Sevdiğin restoranlardan, kapına kadar.</p></div><small>© 2026 Akar Yemek</small></div></footer>
 
 <div class="overlay" id="overlay">
   <aside class="drawer" role="dialog" aria-label="Sepetim">
@@ -343,15 +343,11 @@ const openCart = () => { updateCart(); $('#overlay').classList.add('open'); };
 const closeCart = () => $('#overlay').classList.remove('open');
 
 /* ---------- şehir, adres, favori, sekmeler ---------- */
-/* Hizmet bölgesi: şimdilik yalnızca Isparta Merkez. Genişletmek için districts listesine ilçe ekle (SQL'deki place_order_v3 ile aynı olmalı). */
-const AREA = { city: 'Isparta', districts: ['Merkez'], bounds: [[37.55, 30.30], [37.95, 30.85]] };
-const CITIES = [AREA.city];
-const DIST = { [AREA.city]: AREA.districts.slice() };
+const CITIES = 'Adana,Adıyaman,Afyonkarahisar,Ağrı,Aksaray,Amasya,Ankara,Antalya,Ardahan,Artvin,Aydın,Balıkesir,Bartın,Batman,Bayburt,Bilecik,Bingöl,Bitlis,Bolu,Burdur,Bursa,Çanakkale,Çankırı,Çorum,Denizli,Diyarbakır,Düzce,Edirne,Elazığ,Erzincan,Erzurum,Eskişehir,Gaziantep,Giresun,Gümüşhane,Hakkari,Hatay,Iğdır,Isparta,İstanbul,İzmir,Kahramanmaraş,Karabük,Karaman,Kars,Kastamonu,Kayseri,Kilis,Kırıkkale,Kırklareli,Kırşehir,Kocaeli,Konya,Kütahya,Malatya,Manisa,Mardin,Mersin,Muğla,Muş,Nevşehir,Niğde,Ordu,Osmaniye,Rize,Sakarya,Samsun,Şanlıurfa,Siirt,Sinop,Sivas,Şırnak,Tekirdağ,Tokat,Trabzon,Tunceli,Uşak,Van,Yalova,Yozgat,Zonguldak'.split(',');
+const DIST = { Isparta: ['Merkez', 'Eğirdir', 'Yalvaç', 'Şarkikaraağaç', 'Senirkent', 'Gelendost', 'Gönen', 'Keçiborlu', 'Atabey', 'Aksu', 'Sütçüler', 'Uluborlu', 'Yenişarkaraağaç'], Gaziantep: ['Şahinbey', 'Şehitkamil', 'Oğuzeli', 'Nizip', 'İslahiye', 'Nurdağı', 'Karkamış', 'Araban', 'Yavuzeli'] };
 const WA = '905333933203'; // WhatsApp hattı: başında 90, boşluksuz yaz
 let cityOn = true, myDist = '', myCity = 'Isparta', curTab = 'home', favs = [], coupon = null, revs = [];
 try { myCity = localStorage.getItem('city') || myCity; myDist = localStorage.getItem('dist') || ''; favs = JSON.parse(localStorage.getItem('favs') || '[]'); } catch (e) {}
-if (myCity !== AREA.city) myCity = AREA.city; // eski kayıtlı şehir hizmet bölgesi dışındaysa sıfırla
-if (myDist && !AREA.districts.includes(myDist)) myDist = '';
 const sameCity = (r, c) => !r.city || norm(r.city) === norm(c);
 const serves = (r, c, d) => sameCity(r, c) && (!r.district || !d || norm(r.district) === norm(d) || (Array.isArray(r.delivery_districts) ? r.delivery_districts : []).some(x => norm(x) === norm(d)));
 let farFallback = false;
@@ -383,55 +379,6 @@ async function loadDist(c) {
 }
 async function fillDist(c, v) { const d = await loadDist(c); if (d && $('#dsw') && $('#ct') && $('#ct').value === c) $('#dsw').innerHTML = distField(c, v); }
 const distField = (c, v) => DIST[c] ? `<select id="ds">${DIST[c].map(x => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>` : `<input id="ds" placeholder="İlçe" value="${esc(v)}">`;
-/* ---------- haritada konum işareti (Leaflet + OpenStreetMap, ücretsiz) ---------- */
-let pin = null, pinMap = null, pinMarker = null, leafletP = null;
-function loadLeaflet() {
-  if (window.L) return Promise.resolve();
-  if (leafletP) return leafletP;
-  leafletP = new Promise((res, rej) => {
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(l);
-    const st = document.createElement('style'); st.textContent = '.pinicon{background:none;border:0;font-size:28px;line-height:30px;text-align:center}'; document.head.appendChild(st);
-    const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'; sc.onload = () => res(); sc.onerror = () => { leafletP = null; rej(new Error('Harita yüklenemedi')); }; document.head.appendChild(sc);
-  });
-  return leafletP;
-}
-const pinMsg = t => { const m = $('#pinmsg'); if (m) m.textContent = t; };
-const validPin = a => a && a.lat != null && a.lng != null && isFinite(a.lat) && isFinite(a.lng);
-async function initPin(a) {
-  const box = $('#pinmap'); if (!box) return;
-  pin = validPin(a) ? { lat: +a.lat, lng: +a.lng } : null;
-  try { await loadLeaflet(); } catch (e) { box.innerHTML = '<p class="info" style="padding:12px">Harita yüklenemedi. Yazılı adres yeterli, sonra tekrar deneyebilirsin.</p>'; return; }
-  if (!$('#pinmap')) return;
-  if (pinMap) { try { pinMap.remove(); } catch (e) {} pinMap = null; pinMarker = null; }
-  const center = pin ? [pin.lat, pin.lng] : [37.7648, 30.5566], zoom = pin ? 17 : 13;
-  pinMap = L.map('pinmap', { scrollWheelZoom: false, maxBounds: AREA.bounds, maxBoundsViscosity: 0.8, minZoom: 11 }).setView(center, zoom);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, referrerPolicy: 'origin', attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors' }).addTo(pinMap);
-  pinMap.on('click', ev => setPin(ev.latlng.lat, ev.latlng.lng, false));
-  if (pin) setPin(pin.lat, pin.lng, true);
-}
-function setPin(lat, lng, center) {
-  const b = AREA.bounds;
-  if (lat < b[0][0] || lat > b[1][0] || lng < b[0][1] || lng > b[1][1]) { pinMsg('Seçtiğin konum hizmet bölgemizin (' + AREA.city + ' ' + AREA.districts.join(', ') + ') dışında. Lütfen haritada kendi konumunu işaretle.'); return; }
-  pin = { lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6 };
-  if (!pinMap) return;
-  if (!pinMarker) {
-    pinMarker = L.marker([pin.lat, pin.lng], { draggable: true, icon: L.divIcon({ className: 'pinicon', html: '📍', iconSize: [30, 30], iconAnchor: [15, 28] }) }).addTo(pinMap);
-    pinMarker.on('dragend', () => { const p = pinMarker.getLatLng(); setPin(p.lat, p.lng, false); });
-  } else pinMarker.setLatLng([pin.lat, pin.lng]);
-  if (center) pinMap.setView([pin.lat, pin.lng], Math.max(pinMap.getZoom(), 17));
-  pinMsg('📍 Konum işaretlendi. Yanlışsa iğneyi sürükle ya da haritaya dokun.');
-}
-function pinMe() {
-  if (!navigator.geolocation) { pinMsg('Bu cihaz konum vermiyor. Haritaya dokunarak işaretle.'); return; }
-  pinMsg('Konum alınıyor…');
-  navigator.geolocation.getCurrentPosition(p => {
-    setPin(p.coords.latitude, p.coords.longitude, true);
-    if (p.coords.accuracy > 100) pinMsg('📍 Konum yaklaşık (±' + Math.round(p.coords.accuracy) + ' m). İğneyi kapının önüne sürükle.');
-  }, () => pinMsg('Konum izni verilmedi. Haritaya dokunarak işaretleyebilirsin.'), { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
-}
-function clearPin() { pin = null; if (pinMarker && pinMap) { pinMap.removeLayer(pinMarker); pinMarker = null; } pinMsg('Konum işareti kaldırıldı. Kurye yazılı adresle arayacak.'); }
-document.addEventListener('click', e => { if (e.target.closest('[data-pinme]')) pinMe(); else if (e.target.closest('[data-pinclear]')) clearPin(); });
-
 function addrForm(a) {
   a = a || {}; const c = a.city || myCity;
   return `<label for="a1">Açık adres (mahalle, sokak, bina, kapı no)</label><input id="a1" autocomplete="street-address" value="${esc(a.address_line1)}">
@@ -439,14 +386,11 @@ function addrForm(a) {
 <label for="ds">İlçe</label><div id="dsw">${distField(c, a.district)}</div>${(setTimeout(() => fillDist(c, a.district), 0), '')}
 <label for="pc">Posta kodu</label><input id="pc" inputmode="numeric" autocomplete="postal-code" value="${esc(a.postal_code)}">
 <label for="ph">Telefon</label><input id="ph" type="tel" autocomplete="tel" value="${esc(a.phone)}">
-<label>Haritada kapını işaretle (kurye sana tam ulaşsın)</label><div id="pinmap" style="height:230px;border-radius:12px;border:1px solid #ddd;overflow:hidden;background:#eee"></div>
-<div style="display:flex;gap:8px;margin:8px 0"><button type="button" class="ghost" data-pinme>📍 Konumumu kullan</button><button type="button" class="ghost" data-pinclear>Pini kaldır</button></div><p id="pinmsg" class="info">${validPin(a) ? '📍 Konum işaretli.' : 'İsteğe bağlı: iğneyi kapının önüne koyarsan kurye yazılı adrese bakmak yerine doğrudan oraya gider.'}</p>${(setTimeout(() => initPin(a), 0), '')}
 <label for="nt">Kurye notu (isteğe bağlı)</label><textarea id="nt" rows="2">${esc(a.delivery_instructions)}</textarea>`;
 }
 function saveAddr() {
   const v = id => $('#' + id).value.trim(), el = $('#aerr2');
   const a = { address_line1: v('a1'), city: v('ct'), district: v('ds'), postal_code: v('pc'), country_code: 'TR', phone: v('ph'), delivery_instructions: v('nt') };
-  if (pin) { a.lat = pin.lat; a.lng = pin.lng; }
   if (!a.address_line1 || !a.postal_code || !a.phone) { el.hidden = false; el.textContent = 'Adres, posta kodu ve telefonu doldur.'; return; }
   el.hidden = true; setAddr(a); myCity = a.city; myDist = a.district || '';
   try { localStorage.setItem('city', myCity); localStorage.setItem('dist', myDist); } catch (e) {}
@@ -712,7 +656,6 @@ function authView(mode) {
 <label for="pw">Şifre (en az 8 karakter, harf ve rakam)</label><input id="pw" type="password" autocomplete="${s ? 'new-password' : 'current-password'}" autocapitalize="none" autocorrect="off" enterkeyhint="go">
 <div id="aerr" class="warn" hidden></div>
 ${s ? `<label class="radio" style="align-items:flex-start"><input type="checkbox" id="kv"> <span>Kişisel verilerimin işlenmesine ilişkin <button type="button" class="ghost" style="padding:0;border:0;text-decoration:underline" data-page="kvkk">Aydınlatma Metni</button>’ni ve <button type="button" class="ghost" style="padding:0;border:0;text-decoration:underline" data-page="terms">Kullanım Koşulları</button>’nı okudum, kabul ediyorum.</span></label>` : ''}<button class="go" data-submit="${mode}">${s ? 'Kayıt ol' : 'Giriş yap'}</button>
-${s ? '' : '<button class="sw" data-rstforgot>Şifremi unuttum</button>'}
 <button class="sw" data-mode="${s ? 'login' : 'signup'}">${s ? 'Hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol'}</button></div></div></div>`;
   scrollTo(0, 0);
 }
@@ -816,10 +759,8 @@ async function place() {
   if (!r || !cartCount()) return home();
   const v = id => $('#' + id).value.trim(), el = $('#cerr'), btn = $('[data-place]');
   const addr = { address_line1: v('a1'), city: v('ct'), postal_code: v('pc'), country_code: 'TR', phone: v('ph'), delivery_instructions: v('nt'), district: v('ds') };
-  if (pin) { addr.lat = pin.lat; addr.lng = pin.lng; }
   el.hidden = false;
   if (!addr.address_line1 || !addr.city || !addr.postal_code || addr.phone.replace(/\D/g, '').length < 10) { el.textContent = 'Adres, şehir, posta kodu ve geçerli bir telefon numarasını doldur.'; return; }
-  if (norm(addr.city) !== norm(AREA.city) || !AREA.districts.some(d => norm(d) === norm(addr.district))) { el.textContent = 'Şu an yalnızca ' + AREA.city + ' ' + AREA.districts.join(', ') + ' bölgesine teslimat yapıyoruz.'; return; }
   if (r.city && norm(r.city) !== norm(addr.city)) { el.textContent = r.name + ' yalnızca ' + r.city + ' şehrine teslimat yapıyor.'; return; }
   if (!serves(r, addr.city, addr.district)) { el.textContent = r.name + ' yalnızca ' + r.district + ' ilçesine' + ((r.delivery_districts || []).length ? ' ve ' + r.delivery_districts.join(', ') + ' ilçelerine' : '') + ' teslimat yapıyor.'; return; }
   setAddr(addr);
@@ -843,73 +784,6 @@ async function place() {
   } catch (e) { el.textContent = (e instanceof TypeError ? 'Bağlantı hatası. Siparişin oluşup oluşmadığını “Siparişlerim” bölümünden kontrol et, sonra tekrar dene.' : e.message); btn.disabled = false; }
   finally { placing = false; }
 }
-
-/* ---------- şifremi unuttum (e-posta kodu) ---------- */
-let rstEmail = '', rstAt = 0, rstBusy = false;
-const rstShell = (inner) => `<div class="wrap"><div class="narrow"><div class="panel">${inner}</div></div></div>`;
-let rstTok = null;
-// E-postadaki bağlantıya tıklanırsa (adreste #access_token=...&type=recovery) doğrudan yeni şifre formu açılır
-function rstHash() {
-  const h = new URLSearchParams(location.hash.replace(/^#/, ''));
-  if (h.get('type') !== 'recovery' || !h.get('access_token')) return false;
-  rstTok = { access_token: h.get('access_token'), refresh_token: h.get('refresh_token') || '', expires_in: Number(h.get('expires_in')) || 3600 };
-  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
-  $('#app').innerHTML = rstShell(`<h2 class="title">Yeni şifre belirle</h2><label for="rsp">Yeni şifre (en az 8 karakter, harf ve rakam)</label><input id="rsp" type="password" autocomplete="new-password" autocapitalize="none"><p id="rserr" class="err" hidden style="margin:12px 0 0"></p><button class="go" data-rstset>Şifreyi kaydet</button>`);
-  return true;
-}
-function rstForgot() {
-  $('#app').innerHTML = rstShell(`<button class="back" data-mode="login">← Geri</button><h2 class="title">Şifremi unuttum</h2><p class="info">Hesabının e-posta adresini yaz, sana 6 haneli bir kod gönderelim.</p>
-<label for="rse">E-posta</label><input id="rse" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
-<p id="rserr" class="err" hidden style="margin:12px 0 0"></p><button class="go" data-rstsend>Kod gönder</button>`);
-  const i = $('#rse'); if (i) i.focus();
-}
-function rstReset(note) {
-  $('#app').innerHTML = rstShell(`<button class="back" data-mode="login">← Geri</button><h2 class="title">Yeni şifre belirle</h2><p class="info">${esc(note || '')}<b>${esc(rstEmail)}</b> adresine gelen kodu ve yeni şifreni yaz. Gelmediyse spam klasörüne bak.</p>
-<label for="rsc">Doğrulama kodu</label><input id="rsc" inputmode="numeric" autocomplete="one-time-code" maxlength="10">
-<label for="rsp">Yeni şifre (en az 8 karakter, harf ve rakam)</label><input id="rsp" type="password" autocomplete="new-password" autocapitalize="none">
-<p id="rserr" class="err" hidden style="margin:12px 0 0"></p><button class="go" data-rstset>Şifreyi kaydet</button><button class="sw" data-rstresend>Kodu tekrar gönder</button>`);
-  const i = $('#rsc'); if (i) i.focus();
-}
-async function rstSend(resend) {
-  if (rstBusy) return;
-  const el = $('#rserr'); if (el) el.hidden = false;
-  if (!resend) rstEmail = ($('#rse').value || '').trim().toLowerCase();
-  if (!/^\S+@\S+\.\S+$/.test(rstEmail)) { el.textContent = 'Geçerli bir e-posta adresi yaz.'; return; }
-  const wait = Math.ceil((rstAt - Date.now()) / 1000);
-  if (wait > 0) { el.textContent = 'Yeni kod için ' + wait + ' saniye bekle.'; return; }
-  rstBusy = true; el.textContent = 'Gönderiliyor…';
-  try { await auth('recover?redirect_to=' + encodeURIComponent(location.origin + location.pathname), { email: rstEmail }); rstAt = Date.now() + 60000; }
-  catch (e) { if (/rate limit|too many|security purposes/i.test(String(e.message))) { el.textContent = 'Çok fazla deneme yapıldı. Bir dakika bekleyip tekrar dene.'; rstBusy = false; return; } }
-  rstBusy = false;
-  // E-posta kayıtlı olsun olmasın aynı mesaj gösterilir (hesap varlığı sızdırılmaz)
-  rstReset(resend ? 'Yeni kod gönderildi (hesap varsa). ' : 'Hesap varsa kod gönderildi. ');
-}
-async function rstSet() {
-  if (rstBusy) return;
-  const el = $('#rserr'), token = rstTok ? '' : ($('#rsc').value || '').replace(/\s+/g, ''), pw = $('#rsp').value;
-  el.hidden = false;
-  if (!rstTok && !/^\d{4,10}$/.test(token)) { el.textContent = 'E-postana gelen kodu rakamlarla yaz.'; return; }
-  if (pw.length < 8 || !/[A-Za-z]/.test(pw) || !/\d/.test(pw)) { el.textContent = 'Şifre en az 8 karakter olmalı ve hem harf hem rakam içermeli.'; return; }
-  rstBusy = true; el.textContent = 'Bekle…';
-  try {
-    let j;
-    if (rstTok) { const u = await fetch(SB_URL + '/auth/v1/user', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + rstTok.access_token } }); const uj = await u.json().catch(() => ({})); if (!u.ok || !uj.id) throw new Error('Bağlantının süresi dolmuş'); j = { ...rstTok, user: uj }; }
-    else j = await auth('verify', { type: 'recovery', email: rstEmail, token });
-    if (!j.access_token) throw new Error('Kod doğrulanamadı');
-    const r = await fetch(SB_URL + '/auth/v1/user', { method: 'PUT', headers: { apikey: SB_KEY, 'Content-Type': 'application/json', Authorization: 'Bearer ' + j.access_token }, body: JSON.stringify({ password: pw }) });
-    if (!r.ok) { const x = await r.json().catch(() => ({})); throw new Error(x.msg || x.message || 'Şifre kaydedilemedi'); }
-    rstBusy = false; rstTok = null; save(toSess(j)); who(); afterLogin();
-    toast('Şifren güncellendi'); return;
-  } catch (e) { el.textContent = /same|different/i.test(String(e.message)) ? 'Yeni şifre eskisinden farklı olmalı.' : 'Kod hatalı, süresi dolmuş veya şifre kabul edilmedi. Yeni kod isteyebilirsin.'; }
-  rstBusy = false;
-}
-document.addEventListener('click', e => {
-  if (e.target.closest('[data-rstforgot]')) rstForgot();
-  else if (e.target.closest('[data-rstsend]')) rstSend(false);
-  else if (e.target.closest('[data-rstresend]')) rstSend(true);
-  else if (e.target.closest('[data-rstset]')) rstSet();
-});
-document.addEventListener('keydown', e => { if (e.key !== 'Enter') return; if (e.target.id === 'rse') rstSend(false); else if (e.target.id === 'rsc' || e.target.id === 'rsp') rstSet(); });
 
 /* ---------- olaylar ---------- */
 document.addEventListener('input', e => { if (e.target.id === 'q') fillHome(); });
@@ -935,12 +809,6 @@ const PAGES = {
     <h2>Siparişimi iptal edebilir miyim?</h2><p>Restoran siparişi hazırlamaya başlamadan önce iptal edebilirsin. Hazırlık başladıktan sonra iptal için restoranla veya bizimle iletişime geç.</p>
     <h2>Sorun yaşıyorum</h2><p>Eksik, hatalı veya geç gelen siparişler için İletişim sayfasından bize ulaş. Sipariş bilgini ve sorunu yazman çözümü hızlandırır.</p>
     <button class="go" data-page="contact">Bize ulaş</button>`],
-  support: () => ['Destek', 'Sorununu bize ilet, birlikte çözelim', `
-    ${sess ? `<div class="panel" id="supbox"><h3 style="margin-top:0">Destek talebi</h3><textarea id="stxt" rows="4" maxlength="800" placeholder="Sorununu yaz (sipariş numarası varsa belirt)"></textarea><button class="go" data-sendticket style="margin-top:8px">Gönder</button><div id="tklist"></div></div>${(setTimeout(() => typeof loadTk === 'function' && loadTk(), 0), '')}`
-      : `<p>Destek talebi oluşturmak ve taleplerini takip etmek için giriş yapman gerekir.</p><button class="go" data-mode="login">Giriş yap</button>`}
-    <h2>Başka yollar</h2><p>Acil durumlarda WhatsApp hattından veya İletişim sayfasından da bize ulaşabilirsin. Sık sorulan konular için Yardım Merkezi’ne göz at.</p>
-    <button class="wa" data-wa>WhatsApp sipariş / şikayet hattı</button>
-    <button class="ghost" data-page="help" style="margin-top:8px">Yardım Merkezi</button> <button class="ghost" data-page="contact" style="margin-top:8px">İletişim</button>`],
   faq: () => ['S.S.S. ve İşlem Rehberi', 'En çok sorulan sorular', [
     ['Üye olmadan sipariş verebilir miyim?', 'Siparişini tamamlamak için üye girişi gerekir. Üyelik ücretsizdir ve birkaç saniye sürer.'],
     ['Hangi ödeme yöntemleri geçerli?', 'Restoranın sunduğu ödeme yöntemleri ödeme adımında gösterilir.'],
@@ -977,16 +845,14 @@ const PAGES = {
     ${SITE.company ? `<h2>Şirket bilgileri</h2><div class="box"><p><b>Ünvan:</b> ${esc(SITE.company)}</p>${SITE.tax ? `<p><b>Vergi no:</b> ${esc(SITE.tax)}</p>` : ''}${SITE.mersis ? `<p><b>MERSİS:</b> ${esc(SITE.mersis)}</p>` : ''}${SITE.address ? `<p><b>Adres:</b> ${esc(SITE.address)}</p>` : ''}</div>` : ''}`],
   kvkk: () => ['Aydınlatma Metni', 'Kişisel Verilerin Korunması Kanunu (6698) m.10 kapsamında', `
     <h2>Veri sorumlusu</h2><p>${company()}${SITE.address ? ', ' + esc(SITE.address) : ''}${SITE.email ? ' · ' + esc(SITE.email) : ''}</p>
-    <h2>İşlenen veriler</h2>${li(['Kimlik ve iletişim: ad, e-posta, telefon', 'Adres: teslimat adresi', 'Konum (isteğe bağlı): teslimat için haritada işaretlediğin veya cihazından paylaştığın konum', 'İşlem: sipariş geçmişi, sepet, favoriler', 'Teknik: oturum ve cihaz bilgileri'])}
+    <h2>İşlenen veriler</h2>${li(['Kimlik ve iletişim: ad, e-posta, telefon', 'Adres: teslimat adresi', 'İşlem: sipariş geçmişi, sepet, favoriler', 'Teknik: oturum ve cihaz bilgileri'])}
     <h2>İşleme amaçları</h2>${li(['Siparişin alınması, restorana iletilmesi ve teslim edilmesi', 'Üyelik ve müşteri desteği', 'Hukuki yükümlülüklerin yerine getirilmesi', 'Hizmetin güvenliği ve iyileştirilmesi'])}
-    <h2>Konum verisi</h2><p>Haritada konum işaretlemek isteğe bağlıdır. İşaretlediğin konum yalnızca siparişinin sana doğru teslim edilmesi amacıyla siparişle birlikte kaydedilir; siparişin ilgili restoran ve kurye tarafından görülebilir. Sipariş teslim edildiğinde veya iptal edildiğinde bu konum sipariş kaydından silinir. Konumu işaretlemezsen yazılı adresinle sipariş verebilirsin. Cihazının konum iznini tarayıcı ayarlarından dilediğin zaman geri alabilirsin.</p>
     <h2>Aktarım</h2><p>Verilerin, sipariş verdiğin restorana, teslimat ve altyapı hizmeti sağlayıcılarına ve yasal olarak yetkili kurumlara, gerekli olduğu ölçüde aktarılabilir.</p>
     <h2>Hukuki sebep</h2><p>Sözleşmenin kurulması ve ifası, hukuki yükümlülük, meşru menfaat ve gerektiğinde açık rıza.</p>
     <h2>Haklarınız</h2><p>KVKK m.11 uyarınca verilerinin işlenip işlenmediğini öğrenme, düzeltme, silme, itiraz etme ve zarar hâlinde tazminat talep etme haklarına sahipsin. Başvurularını İletişim sayfasından iletebilirsin.</p>`+legalNote],
   privacy: () => ['Kişisel Verilerin Korunması ve İşlenmesi ve Gizlilik Politikası', 'Son güncelleme: ' + SITE.updated, `
     <h2>Genel ilke</h2><p>${company()} olarak gizliliğine önem veriyoruz. Verilerini yalnızca hizmeti sunmak için gereken ölçüde toplar ve işleriz; satmayız.</p>
     <h2>Topladığımız veriler</h2><p>Üyelik, adres ve sipariş bilgilerin; ayrıca oturum için gereken teknik veriler.</p>
-    <h2>Konum verisi</h2><p>Haritada işaretlediğin konum isteğe bağlıdır ve yalnızca teslimat için kullanılır. Sipariş teslim edilince veya iptal olunca sipariş kaydından silinir; reklam veya başka amaçla kullanılmaz. Konumu paylaşmadan da yazılı adresinle sipariş verebilirsin.</p>
     <h2>Saklama süresi</h2><p>Verilerin, işleme amacı ve yasal saklama süreleri boyunca tutulur; süre sonunda silinir veya anonimleştirilir.</p>
     <h2>Güvenlik</h2><p>Verilerini yetkisiz erişime karşı korumak için makul teknik ve idari önlemler alırız. Hiçbir sistem tamamen risksiz olmadığından şifreni kimseyle paylaşmamanı öneririz.</p>
     <h2>Üçüncü taraflar</h2><p>Siparişin için restoranla, teslimat ve altyapı sağlayıcılarıyla gerekli veriler paylaşılır. Reklam amaçlı satış yapılmaz.</p>
@@ -1001,7 +867,7 @@ const PAGES = {
     <p>Kolay erişim için tarayıcı menüsünden <b>“Ana ekrana ekle”</b> seçeneğini kullanabilirsin.</p></div>`],
   cities: () => {
     const on = new Set(Object.values(rests).map(r => norm(r.city || '')));
-    return ['Hizmet bölgemiz', 'Şu an yalnızca ' + AREA.city + ' ' + AREA.districts.join(', ') + ' bölgesine hizmet veriyoruz.', `<div class="chipc">${AREA.districts.map(d => `<span class="on">${esc(AREA.city)} · ${esc(d)}</span>`).join('')}</div><div class="note">Bölgemiz zamanla genişleyecek. Restoranını eklemek istersen İş Ortağımız Olun sayfasından başvurabilirsin.</div>`];
+    return ['Türkiye’deki tüm şehirler', 'Restoranımız bulunan şehirler vurgulanmıştır.', `<div class="chipc">${CITIES.map(c => `<span class="${on.has(norm(c)) ? 'on' : ''}">${c}</span>`).join('')}</div><div class="note">Şehrinde henüz restoran yoksa İş Ortağımız Olun sayfasından restoranını ekletebilirsin.</div>`];
   }
 };
 function showPage(k) {
@@ -1200,7 +1066,6 @@ document.addEventListener('keydown', e => {
     try { save(toSess(await auth('token?grant_type=refresh_token', { refresh_token: sess.refresh }))); } catch (e) { save(null); }
   }
   who();
-  if (rstHash()) { updateCart(); return; }
   await home();
   if (cart.rid && loaded && !rests[cart.rid]) clearCart();
   updateCart();
