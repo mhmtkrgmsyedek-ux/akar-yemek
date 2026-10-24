@@ -402,6 +402,7 @@ function startPoll() {
   }, 15000);
 }
 const ageMin = t => t ? Math.floor((Date.now() - new Date(t).getTime()) / 60000) : 0;
+const pinOf = a => (a && a.lat != null && a.lng != null && isFinite(a.lat) && isFinite(a.lng) && Math.abs(Number(a.lat)) <= 90 && Math.abs(Number(a.lng)) <= 180) ? ` · <a href="https://www.google.com/maps?q=${encodeURIComponent(Number(a.lat) + ',' + Number(a.lng))}" target="_blank" rel="noopener noreferrer">📍 Müşteri pini</a>` : '';
 const locOf = c0 => { if (!c0) return ''; const c = (pnl.d.locs || []).find(l => (l.courier_id || l.id) === c0.id) || c0; const g = (...k) => { for (const x of k) if (c[x] != null && c[x] !== '') return c[x]; return null; }, la = g('lat', 'last_lat', 'latitude', 'loc_lat'), ln = g('lng', 'last_lng', 'lon', 'longitude', 'loc_lng'), at = g('location_at', 'last_location_at', 'loc_updated_at', 'last_seen', 'last_seen_at', 'location_updated_at', 'updated_at', 'created_at'); if (la == null || ln == null) return '<p class="info">📍 Konum yok (kurye aktif teslimatta değilse paylaşılmaz)</p>'; const m = at ? ageMin(at) : null; return `<p class="info">📍 <a href="https://www.google.com/maps?q=${encodeURIComponent(la)},${encodeURIComponent(ln)}" target="_blank" rel="noopener">Haritada aç</a>${m != null ? ' · ' + (m < 1 ? 'şimdi' : m + ' dk önce') : ''}${m != null && m > 5 ? ' ⚠️ eski konum' : ''}</p>`; };
 const CLIM = { open: 10, assigned: 20, picked_up: 40 };
 const CNAME = { open: '🔎 Bekliyor', assigned: '🛵 Kabul edildi', picked_up: '📦 Yolda', delivered: '✅ Teslim', cancelled: '❌ İptal' };
@@ -417,7 +418,7 @@ function dispHtml() {
     const opts = cs.map(c => `<option value="${esc(c.id)}"${c.id === o.courier_id ? ' selected' : ''}>${esc(c.full_name)}${c.is_online ? '' : ' (çevrimdışı)'}${load[c.id] ? ' · ' + load[c.id] + ' aktif' : ''}</option>`).join('');
     const loc = o.courier_id ? locOf({ id: o.courier_id }) : '';
     return `<div class="ocard" data-s="${esc(o.status)}"${late ? ' style="border-color:#c0392b;background:#fdecea"' : ''}><b>${esc(r.name || 'Restoran')}</b> <span class="badge" data-s="${esc(o.status)}">${DST[o.status] || esc(o.status)}</span> <span class="badge">#${esc(String(o.id).slice(0, 6).toUpperCase())}</span>${late ? ` <b style="color:#c0392b">⚠️ ${m} dk</b>` : ` <span class="info">${m} dk önce</span>`}
-<p class="info">🏪 ${esc(r.address || '')}<br>📍 ${esc(addr)}${a.phone ? ' · 📞 ' + esc(a.phone) : ''}<br>${(o.payment_method || 'cash') === 'cash' ? '💵 Kapıda ödeme ' : '💳 Kart '}· ${tl(o.total_amount)}</p>
+<p class="info">🏪 ${esc(r.address || '')}<br>📍 ${esc(addr)}${pinOf(a)}${a.phone ? ' · 📞 ' + esc(a.phone) : ''}<br>${(o.payment_method || 'cash') === 'cash' ? '💵 Kapıda ödeme ' : '💳 Kart '}· ${tl(o.total_amount)}</p>
 ${o.courier_id ? `<p class="info">🛵 <b>${esc(cn(o.courier_id))}</b></p>${loc}` : ''}
 ${o.status !== 'out_for_delivery' || !o.courier_id ? `<div class="prow"><select id="os-${esc(o.id)}">${o.courier_id ? '' : '<option value="">Kurye seç…</option>'}${opts}</select><button class="go" data-oasg="${esc(o.id)}">${o.courier_id ? 'Başkasına ata' : 'Ata'}</button>${o.courier_id ? `<button class="ghost" data-ounas="${esc(o.id)}">Kuryeyi kaldır</button>` : ''}</div>` : ''}</div>`;
   };
@@ -425,7 +426,7 @@ ${o.status !== 'out_for_delivery' || !o.courier_id ? `<div class="prow"><select 
   return `<div class="kpi"><div><span>Kurye bekleyen</span><b>${waiting.length}</b></div><div><span>Kuryeli</span><b>${assigned.length}</b></div><div><span>Restoran kendi kuryesi</span><b>${own.length}</b></div></div><div class="prow"><button class="ghost" data-dref>Yenile</button></div>`
     + '<h3 class="info" style="margin:14px 0 4px">⏳ Kurye bekleyen siparişler</h3>' + (waiting.length ? waiting.map(card).join('') : '<div class="empty">Kurye bekleyen sipariş yok.</div>')
     + '<h3 class="info" style="margin:14px 0 4px">🛵 Kuryeye verilenler</h3>' + (assigned.length ? assigned.map(card).join('') : '<div class="empty">Yok.</div>')
-    + '<h3 class="info" style="margin:14px 0 4px">🚶 Restoranın kendi kuryesiyle gidenler</h3>' + (own.length ? own.map(o => { const a = o.delivery_address || {}, r = o.restaurants || {}; return `<div class="ocard" data-s="${esc(o.status)}"><b>${esc(r.name || 'Restoran')}</b> <span class="badge" data-s="${esc(o.status)}">${DST[o.status] || esc(o.status)}</span><p class="info">📍 ${esc([a.address_line1, a.district, a.city].filter(Boolean).join(', '))}</p></div>`; }).join('') : '<div class="empty">Yok.</div>')
+    + '<h3 class="info" style="margin:14px 0 4px">🚶 Restoranın kendi kuryesiyle gidenler</h3>' + (own.length ? own.map(o => { const a = o.delivery_address || {}, r = o.restaurants || {}; return `<div class="ocard" data-s="${esc(o.status)}"><b>${esc(r.name || 'Restoran')}</b> <span class="badge" data-s="${esc(o.status)}">${DST[o.status] || esc(o.status)}</span><p class="info">📍 ${esc([a.address_line1, a.district, a.city].filter(Boolean).join(', '))}${pinOf(a)}</p></div>`; }).join('') : '<div class="empty">Yok.</div>')
     + '<h3 class="info" style="margin:14px 0 4px">Kuryeler</h3>' + cl;
 }
 function callsHtml() {
